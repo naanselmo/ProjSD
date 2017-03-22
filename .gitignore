@@ -17,6 +17,10 @@ hs_err_pid*
 .settings/
 bin/
 
+# IntelliJ IDEA
+**/*.iml
+.idea
+
 # Mac
 .DS_Store
 

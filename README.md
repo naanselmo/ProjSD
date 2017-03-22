@@ -1,15 +1,9 @@
 # Projeto de Sistemas Distribuídos 2016-2017 #
 
-Grupo CXX
-*(preencher com identificador de grupo e depois apagar esta linha)*
+#### Grupo T04
 
-... ... ...
-
-... ... ...
-
-... ... ...
-*(preencher com nome, número e email de membro do grupo e depois apagar esta linha)*
-
-
--------------------------------------------------------------------------------
-**FIM**
+| Número |       Nome       |                Email                |
+|:------:|:----------------:|:-----------------------------------:|
+| 81900  | Nuno Anselmo     | nuno.anselmo@tecnico.ulisboa.pt     |
+| 81936  | Liliana Oliveira | liliana.oliveira@tecnico.ulisboa.pt |
+| 82047  | André Mendes     | andre.a.mendes@tecnico.ulisboa.pt   |
