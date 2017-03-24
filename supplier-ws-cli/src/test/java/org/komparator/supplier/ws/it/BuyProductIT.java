@@ -115,6 +115,11 @@ public class BuyProductIT extends BaseIT {
 		client.buyProduct("X1", 0);
 	}
 
+	@Test(expected = BadProductId_Exception.class)
+	public void buyProductBothArgumentsInvalidTest() throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
+		client.buyProduct(null, -1000);
+	}
+
 	// main tests
 
 	@Test
@@ -164,16 +169,22 @@ public class BuyProductIT extends BaseIT {
 
 	@Test
 	public void buyProductCaseSensitiveProductTest() throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
-		String purchaseId = client.buyProduct("x1", 1);
-		assertNull(purchaseId);
+		try {
+			client.buyProduct("x1", 1);
+			fail();
+		} catch (BadProductId_Exception ignored) {
+		}
 		ProductView product = client.getProduct("X1");
 		assertEquals(10, product.getQuantity());
 	}
 
 	@Test
 	public void buyProductProductNotExistsTest() throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
-		String purchaseId = client.buyProduct("A0", 1);
-		assertNull(purchaseId);
+		try {
+			client.buyProduct("A0", 1);
+			fail();
+		} catch (BadProductId_Exception ignored) {
+		}
 	}
 
 }
