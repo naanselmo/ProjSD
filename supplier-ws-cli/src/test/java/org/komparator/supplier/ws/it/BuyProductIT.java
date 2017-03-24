@@ -151,7 +151,7 @@ public class BuyProductIT extends BaseIT {
 	public void buyProductAnotherMaxQuantityTest() throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
 		String purchaseId = client.buyProduct("Y2", 20);
 		assertNotNull(purchaseId);
-		ProductView product = client.getProduct("Y1");
+		ProductView product = client.getProduct("Y2");
 		assertEquals(0, product.getQuantity());
 		// Check if the purchaseId was added to the purchase history.
 		assertEquals(true, client.listPurchases().stream().anyMatch(purchaseView -> purchaseId.equals(purchaseView.getId())));
@@ -167,7 +167,7 @@ public class BuyProductIT extends BaseIT {
 		String purchaseId = client.buyProduct("x1", 1);
 		assertNull(purchaseId);
 		ProductView product = client.getProduct("X1");
-		assertEquals(20, product.getQuantity());
+		assertEquals(10, product.getQuantity());
 	}
 
 	@Test
