@@ -8,6 +8,7 @@ import javax.jws.WebService;
 import org.komparator.supplier.domain.Product;
 import org.komparator.supplier.domain.Purchase;
 import org.komparator.supplier.domain.Supplier;
+import org.komparator.supplier.domain.QuantityException;
 
 @WebService(
 		endpointInterface = "org.komparator.supplier.ws.SupplierPortType",
@@ -72,10 +73,19 @@ public class SupplierPortImpl implements SupplierPortType {
 	@Override
 	public String buyProduct(String productId, int quantity)
 			throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
-		// TODO
+		if (getProduct(productId) == null) { // getProduct verifies if ID is valid and not-null
+			throwBadProductId("Product ID does not exist");
+		}
+		if (quantity <= 0) {
+			throwBadQuantity("Purchase quantity cannot be negative or zero.");
+		}
 
-
-
+		// Warning: if product vanishes buy may fail unexpectedly due to a race condition here
+		try {
+			return Supplier.getInstance().buyProduct(productId, quantity);
+		} catch (QuantityException e) {
+			throwInsufficientQuantity(e.getMessage());
+		}
 
 		return null;
 	}
