@@ -22,7 +22,12 @@
 
         <mainclass>org.komparator.supplier.ws.cli.SupplierClientApp</mainclass>
 
-        <ws.url>http://localhost:8081/supplier-ws/endpoint</ws.url>
+        <ws.i>1</ws.i>
+        <ws.host>localhost</ws.host>
+        <ws.port>808${ws.i}</ws.port>
+        <ws.url>http://${ws.host}:${ws.port}/supplier-ws/endpoint</ws.url>
+        <ws.name>T04_Supplier${ws.i}</ws.name>
+        <uddi.url>http://t04:LF21XE6j@uddi.sd.rnl.tecnico.ulisboa.pt:9090/</uddi.url>
     </properties>
 
     <dependencies>
@@ -38,6 +43,12 @@
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
+        </dependency>
+        <!-- UDDI Naming -->
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sdis</groupId>
+            <artifactId>uddi-naming</artifactId>
+            <version>1.2</version>
         </dependency>
     </dependencies>
 
@@ -109,7 +120,9 @@
                     <killAfter>-1</killAfter>
                     <mainClass>${mainclass}</mainClass>
                     <arguments>
-                        <argument>${ws.url}</argument>
+                        <!--<argument>${ws.url}</argument>-->
+                        <argument>${uddi.url}</argument>
+                        <argument>${ws.name}</argument>
                     </arguments>
                 </configuration>
             </plugin>

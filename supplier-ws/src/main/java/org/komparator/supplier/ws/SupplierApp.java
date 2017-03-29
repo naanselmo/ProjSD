@@ -5,16 +5,29 @@ package org.komparator.supplier.ws;
 public class SupplierApp {
 
 	public static void main(String[] args) throws Exception {
-		// Check arguments
-		if (args.length < 1) {
+ 		// Check arguments
+		if (args.length == 0 || args.length == 2) {
 			System.err.println("Argument(s) missing!");
-			System.err.println("Usage: java " + SupplierApp.class.getName() + " wsURL");
+			System.err.println("Usage: java " + SupplierApp.class.getName() + " wsURL OR uddiURL wsName wsURL");
 			return;
 		}
-		String wsURL = args[0];
+		String uddiURL = null;
+		String wsName = null;
+		String wsURL = null;
 
-		// Create server implementation object
-		SupplierEndpointManager endpoint = new SupplierEndpointManager(wsURL);
+		// Create server implementation object, according to options
+		SupplierEndpointManager endpoint = null;
+		if (args.length == 1) {
+			wsURL = args[0];
+			endpoint = new SupplierEndpointManager(wsURL);
+		} else if (args.length >= 3) {
+			uddiURL = args[0];
+			wsName = args[1];
+			wsURL = args[2];
+			endpoint = new SupplierEndpointManager(uddiURL, wsName, wsURL);
+		}
+
+		endpoint.setVerbose(true);
 		try {
 			endpoint.start();
 			endpoint.awaitConnections();
