@@ -8,6 +8,7 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
 
 import javax.jws.WebService;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -35,17 +36,7 @@ public class MediatorPortImpl implements MediatorPortType {
 	// Main operations -------------------------------------------------------
 
 	@Override
-	public void clear() {
-
-	}
-
-	@Override
 	public List<ItemView> getItems(String productId) throws InvalidItemId_Exception {
-		return null;
-	}
-
-	@Override
-	public List<CartView> listCarts() {
 		return null;
 	}
 
@@ -64,29 +55,53 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	}
 
+	// Auxiliary operations --------------------------------------------------
+
 	@Override
-	public String ping(String arg0) {
+	public String ping(String name) {
+		if (name == null || name.trim().length() == 0)
+			name = "friend";
+
+		String wsName = endpointManager.getWsName();
 		StringBuilder result = new StringBuilder();
+		result.append("Hello ").append(name).append(" from ").append(wsName).append(System.lineSeparator());
+
 		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
 		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
 		try {
 			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
 			Collection<UDDIRecord> uddiRecords = uddiNaming.listRecords(suppliersWsNameFormat);
+			result.append("Found ").append(uddiRecords.size()).append(" suppliers:").append(System.lineSeparator());
 			Iterator<UDDIRecord> uddiRecordsIterator = uddiRecords.iterator();
 			SupplierPortType port;
 			while (uddiRecordsIterator.hasNext()) {
 				UDDIRecord record = uddiRecordsIterator.next();
-				port = createSupplierProxy(record.getUrl());
-				result.append(port.ping(arg0));
+				result.append("  - ").append(record.getOrgName()).append(": ");
+				try {
+					port = createSupplierProxy(record.getUrl());
+					result.append(port.ping(name));
+				} catch (WebServiceException e) {
+					result.append("Not responding...");
+				}
 				if (uddiRecordsIterator.hasNext())
 					result.append(System.lineSeparator());
 			}
 		} catch (UDDINamingException e) {
-			String msg = String.format("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			System.out.println(msg);
+			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
 			e.printStackTrace();
+			result.append("Unable to search for suppliers.");
 		}
 		return result.toString();
+	}
+
+	@Override
+	public void clear() {
+
+	}
+
+	@Override
+	public List<CartView> listCarts() {
+		return null;
 	}
 
 	@Override
@@ -94,7 +109,7 @@ public class MediatorPortImpl implements MediatorPortType {
 		return null;
 	}
 
-	// Auxiliary operations --------------------------------------------------	
+	// Proxy helpers ---------------------------------------------------------
 
 	private SupplierPortType createSupplierProxy(String wsUrl) {
 		if (wsUrl == null)

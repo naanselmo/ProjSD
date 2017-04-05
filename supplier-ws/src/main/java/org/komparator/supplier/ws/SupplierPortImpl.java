@@ -63,7 +63,7 @@ public class SupplierPortImpl implements SupplierPortType {
 		List<ProductView> resultProducts = new ArrayList<>();
 		List<ProductView> products = listProducts();
 		for (ProductView product : products) {
-			if (product.getDesc().toLowerCase().contains(descText.toLowerCase())) {
+			if (product.getDesc().contains(descText)) {
 				resultProducts.add(product);
 			}
 		}
@@ -96,7 +96,7 @@ public class SupplierPortImpl implements SupplierPortType {
 		if (name == null || name.trim().length() == 0)
 			name = "friend";
 
-		String wsName = "Supplier";
+		String wsName = endpointManager.getWsName();
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("Hello ").append(name);

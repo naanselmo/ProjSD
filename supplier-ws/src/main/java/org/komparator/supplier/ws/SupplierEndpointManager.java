@@ -16,6 +16,10 @@ public class SupplierEndpointManager {
 	/** Web Service name */
 	private String wsName = null;
 
+	String getWsName() {
+		return wsName;
+	}
+
 	/** Web Service location to publish */
 	private String wsURL = null;
 

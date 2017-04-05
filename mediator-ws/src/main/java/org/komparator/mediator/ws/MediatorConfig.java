@@ -24,8 +24,7 @@ public class MediatorConfig {
 			properties.load(MediatorConfig.class.getResourceAsStream(CONFIG_PROP_FILE));
 			System.out.println("Loaded config properties:");
 		} catch (IOException e) {
-			final String msg = String.format("Could not load properties file %s, falling back to defaults.", CONFIG_PROP_FILE);
-			System.out.println(msg);
+			System.out.printf("Could not load properties file %s, falling back to defaults.", CONFIG_PROP_FILE);
 			properties.setProperty(PROPERTY_SUPPLIERS_UDDI_URL, DEFAULT_SUPPLIERS_UDDI_URL);
 			properties.setProperty(PROPERTY_WS_NAME_FORMAT, DEFAULT_WS_NAME_FORMAT);
 		}
