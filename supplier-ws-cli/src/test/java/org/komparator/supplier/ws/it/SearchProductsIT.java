@@ -132,16 +132,9 @@ public class SearchProductsIT extends BaseIT {
 	}
 
 	@Test
-	public void searchProductsSingleProductCaseInsensitiveExistsTest() throws BadText_Exception {
-		// products search should be case insensitive,
-		// so a product with the description "Basketball" should be found by the search text "BasKeTbaLL"
+	public void searchProductsSingleProductCaseSensitiveExistsTest() throws BadText_Exception {
 		List<ProductView> products = client.searchProducts("BasKeTbaLL");
-		assertEquals(1, products.size());
-		ProductView product = products.get(0);
-		assertEquals("X1", product.getId());
-		assertEquals(10, product.getPrice());
-		assertEquals(10, product.getQuantity());
-		assertEquals(true, product.getDesc().toLowerCase().contains("basketball"));
+		assertEquals(0, products.size());
 	}
 
 	@Test
@@ -155,13 +148,8 @@ public class SearchProductsIT extends BaseIT {
 
 	@Test
 	public void searchProductsMultipleProductCaseInsensitiveExistsTest() throws BadText_Exception {
-		// products search should be case insensitive,
-		// so the products with "ball" in their description should be found by the search text "BaLL"
 		List<ProductView> products = client.searchProducts("BaLL");
-		assertEquals(3, products.size());
-		for (ProductView productView : products) {
-			assertEquals(true, productView.getDesc().toLowerCase().contains("ball"));
-		}
+		assertEquals(0, products.size());
 	}
 
 	@Test
