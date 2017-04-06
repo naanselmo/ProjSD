@@ -108,14 +108,15 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     }
 
     @Test
-    public void noQuantityItemTest() throws InvalidText_Exception, BadProductId_Exception, BadProduct_Exception {
+    public void noQuantityItemTest() throws InvalidText_Exception, BadProductId_Exception, BadProduct_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
         {
             ProductView product = new ProductView();
     		product.setId("TPSS");
     		product.setDesc("TestProdSingleSup");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
+            supplierClients[0].buyProduct("TPSS", 1);
         }
         List<ItemView> results = mediatorClient.searchItems("TPSS");
         assertEquals(1, results.size());
@@ -135,7 +136,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
         assertEquals(1, results.size());
         assertEquals("TPSS", results.get(0).getItemId().getProductId());
         assertEquals(supplierNames[0], results.get(0).getItemId().getSupplierId());
-        assertEquals("TestProdSingleSup", results.get(0).getDesc());
+        assertEquals("ProdSingle", results.get(0).getDesc());
         assertEquals(1, results.get(0).getPrice());
     }
 
@@ -158,7 +159,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("aBbBb");
     		product.setDesc("TestProduct");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -166,7 +167,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("aaaaa");
     		product.setDesc("TestProduct");
     		product.setPrice(3);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
         {
@@ -174,7 +175,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("AAAAA");
     		product.setDesc("TestProduct");
     		product.setPrice(5);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -182,7 +183,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("A");
     		product.setDesc("TestProduct");
     		product.setPrice(2);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
         {
@@ -190,7 +191,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("BbBbB");
     		product.setDesc("TestProduct");
     		product.setPrice(2);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
 
@@ -209,7 +210,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP1");
     		product.setDesc("TestProduct1");
     		product.setPrice(10);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -217,7 +218,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP1");
     		product.setDesc("TestProduct1");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
         {
@@ -225,7 +226,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP2");
     		product.setDesc("TestProduct2");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -233,7 +234,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP2");
     		product.setDesc("TestProduct2");
     		product.setPrice(10);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
 

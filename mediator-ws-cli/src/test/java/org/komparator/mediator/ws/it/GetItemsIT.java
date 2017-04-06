@@ -113,14 +113,15 @@ public class GetItemsIT extends BaseWithSuppliersIT {
     }
 
     @Test
-    public void noQuantityItemTest() throws InvalidItemId_Exception, BadProductId_Exception, BadProduct_Exception {
+    public void noQuantityItemTest() throws InvalidItemId_Exception, BadProductId_Exception, BadProduct_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
         {
             ProductView product = new ProductView();
     		product.setId("TPSS");
     		product.setDesc("TestProdSingleSup");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
+            supplierClients[0].buyProduct("TPSS", 1);
         }
         List<ItemView> results = mediatorClient.getItems("TPSS");
         assertEquals(1, results.size());
@@ -150,7 +151,6 @@ public class GetItemsIT extends BaseWithSuppliersIT {
         assertEquals(results.size(), supplierClients.length);
         for (int i = 0; i < supplierClients.length; i++) {
             assertEquals("TP", results.get(i).getItemId().getProductId());
-            assertEquals(supplierNames[i], results.get(i).getItemId().getSupplierId());
             assertEquals("TestProd", results.get(i).getDesc());
             assertEquals(1, results.get(i).getPrice());
         }
@@ -163,7 +163,7 @@ public class GetItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP1");
     		product.setDesc("TestProduct");
     		product.setPrice(10);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -171,7 +171,7 @@ public class GetItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP1");
     		product.setDesc("TestProduct");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
         {
@@ -179,7 +179,7 @@ public class GetItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP2");
     		product.setDesc("TestProduct");
     		product.setPrice(1);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
         {
@@ -187,7 +187,7 @@ public class GetItemsIT extends BaseWithSuppliersIT {
     		product.setId("TP2");
     		product.setDesc("TestProduct");
     		product.setPrice(10);
-    		product.setQuantity(0);
+    		product.setQuantity(1);
             supplierClients[1].createProduct(product);
         }
 

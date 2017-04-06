@@ -51,10 +51,8 @@ public class ListCartsIT extends BaseWithSuppliersIT {
         List<CartView> results = mediatorClient.listCarts();
         assertEquals(1, results.size());
         assertEquals("TC", results.get(0).getCartId());
-        assertEquals(supplierNames.length, results.get(0).getItems().size());
-        for (CartItemView item : results.get(0).getItems()) {
-            assertEquals("TP", item.getItem().getItemId().getProductId());
-        }
+        assertEquals(1, results.get(0).getItems().size());
+        assertEquals("TP", results.get(0).getItems().get(0).getItem().getItemId().getProductId());
     }
 
     @Test
