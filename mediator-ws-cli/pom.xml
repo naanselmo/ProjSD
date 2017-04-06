@@ -33,7 +33,7 @@
         <suppliers.uddi.url>http://${uddi.host}:${uddi.port}/</suppliers.uddi.url>
 
         <suppliers.count>2</suppliers.count>
-        <suppliers.name.prefix>T04Supplier</suppliers.name.prefix>
+        <suppliers.name.prefix>T04_Supplier</suppliers.name.prefix>
     </properties>
 
     <dependencies>
