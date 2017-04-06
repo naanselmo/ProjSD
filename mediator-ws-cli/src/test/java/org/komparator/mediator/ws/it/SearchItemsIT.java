@@ -87,14 +87,14 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
             }
         }
 
-        List<ItemView> resultsUpper = mediatorClient.searchItems("TP");
+        List<ItemView> resultsUpper = mediatorClient.searchItems("TestProd");
         assertEquals(supplierClients.length, resultsUpper.size());
         for (ItemView item : resultsUpper) {
             assertEquals("TP", item.getItemId().getProductId());
             assertEquals("TestProd", item.getDesc());
         }
 
-        List<ItemView> resultsLower = mediatorClient.searchItems("tp");
+        List<ItemView> resultsLower = mediatorClient.searchItems("testprod");
         assertEquals(supplierClients.length, resultsLower.size());
         for (ItemView item : resultsLower) {
             assertEquals("tp", item.getItemId().getProductId());
@@ -118,7 +118,7 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
             supplierClients[0].createProduct(product);
             supplierClients[0].buyProduct("TPSS", 1);
         }
-        List<ItemView> results = mediatorClient.searchItems("TPSS");
+        List<ItemView> results = mediatorClient.searchItems("ProdSingle");
         assertEquals(1, results.size());
     }
 
@@ -127,12 +127,12 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
         {
             ProductView product = new ProductView();
     		product.setId("TPSS");
-    		product.setDesc("TestProdSingleSup");
+    		product.setDesc("ProdSingle");
     		product.setPrice(1);
     		product.setQuantity(1);
             supplierClients[0].createProduct(product);
         }
-        List<ItemView> results = mediatorClient.searchItems("TPSS");
+        List<ItemView> results = mediatorClient.searchItems("ProdSingle");
         assertEquals(1, results.size());
         assertEquals("TPSS", results.get(0).getItemId().getProductId());
         assertEquals(supplierNames[0], results.get(0).getItemId().getSupplierId());
@@ -142,11 +142,10 @@ public class SearchItemsIT extends BaseWithSuppliersIT {
 
     @Test
     public void multipleItemsDifferentSuppliersTest() throws InvalidText_Exception {
-        List<ItemView> results = mediatorClient.searchItems("TP");
+        List<ItemView> results = mediatorClient.searchItems("TestProd");
         assertEquals(results.size(), supplierClients.length);
         for (int i = 0; i < supplierClients.length; i++) {
             assertEquals("TP", results.get(i).getItemId().getProductId());
-            assertEquals(supplierNames[i], results.get(i).getItemId().getSupplierId());
             assertEquals("TestProd", results.get(i).getDesc());
             assertEquals(1, results.get(i).getPrice());
         }

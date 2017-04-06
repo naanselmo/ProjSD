@@ -42,12 +42,13 @@ public class ListCartsIT extends BaseWithSuppliersIT {
 
     @Test
     public void singleCartTest() throws InvalidCartId_Exception, InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
-        for ( String name : supplierNames ) {
+        {
             ItemIdView itemId = new ItemIdView();
             itemId.setProductId("TP");
-            itemId.setSupplierId(name);
+            itemId.setSupplierId(supplierNames[0]);
             mediatorClient.addToCart("TC", itemId, 1);
         }
+
         List<CartView> results = mediatorClient.listCarts();
         assertEquals(1, results.size());
         assertEquals("TC", results.get(0).getCartId());
@@ -57,10 +58,10 @@ public class ListCartsIT extends BaseWithSuppliersIT {
 
     @Test
     public void multipleCartsTest() throws InvalidCartId_Exception, InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
-        for ( String name : supplierNames ) {
+        {
             ItemIdView itemId = new ItemIdView();
             itemId.setProductId("TP");
-            itemId.setSupplierId(name);
+            itemId.setSupplierId(supplierNames[0]);
             mediatorClient.addToCart("TC1", itemId, 1);
             mediatorClient.addToCart("TC2", itemId, 1);
         }
