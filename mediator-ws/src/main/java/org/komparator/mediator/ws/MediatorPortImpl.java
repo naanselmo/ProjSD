@@ -29,6 +29,12 @@ public class MediatorPortImpl implements MediatorPortType {
 	// end point manager
 	private MediatorEndpointManager endpointManager;
 
+	// Suppliers uddi url
+	private String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
+
+	// Suppliers ws name format
+	private String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
+
 	public MediatorPortImpl(MediatorEndpointManager endpointManager) {
 		this.endpointManager = endpointManager;
 	}
@@ -44,34 +50,30 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (productId.length() == 0) {
 			throwInvalidItemId("Product id cannot be empty or whitespace!");
 		}
+		if (!isAlphanumeric(productId)) {
+			throwInvalidItemId("Product id must be alphanumeric!");
+		}
 
 		List<ItemView> result = new ArrayList<>();
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
-		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			Collection<UDDIRecord> uddiRecords = uddiNaming.listRecords(suppliersWsNameFormat);
-			SupplierClient client;
-			for (UDDIRecord record : uddiRecords) {
+		Collection<UDDIRecord> uddiRecords = listSupplierRecords();
+		SupplierClient client;
+		for (UDDIRecord record : uddiRecords) {
+			try {
+				client = new SupplierClient(record.getUrl());
 				try {
-					client = new SupplierClient(record.getUrl());
-					try {
-						ProductView productView = client.getProduct(productId);
-						Item item = new Item(productView.getId(), record.getOrgName(), productView.getDesc(), productView.getPrice());
-						result.add(newItemView(item));
-					} catch (BadProductId_Exception e) {
-						throwInvalidItemId("Invalid product id!");
-					}
-				} catch (SupplierClientException | WebServiceException e) {
-					// TODO
+					ProductView productView = client.getProduct(productId);
+					if (productView == null)
+						continue;
+					Item item = new Item(productView.getId(), record.getOrgName(), productView.getDesc(), productView.getPrice());
+					result.add(newItemView(item));
+				} catch (BadProductId_Exception e) {
+					throwInvalidItemId("Invalid product id!");
 				}
+			} catch (SupplierClientException | WebServiceException ignored) {
+				System.err.printf("%s didn't not respond to getProduct in the getItems operation.", record.getOrgName());
 			}
-		} catch (UDDINamingException e) {
-			String msg = String.format("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			System.err.println(msg);
-			e.printStackTrace();
 		}
-		Collections.sort(result, Comparator.comparingInt(ItemView::getPrice));
+		result.sort(Comparator.comparingInt(ItemView::getPrice));
 		return result;
 	}
 
@@ -86,41 +88,28 @@ public class MediatorPortImpl implements MediatorPortType {
 		}
 
 		List<ItemView> result = new ArrayList<>();
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
-		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			Collection<UDDIRecord> uddiRecords = uddiNaming.listRecords(suppliersWsNameFormat);
-			SupplierClient client;
-			for (UDDIRecord record : uddiRecords) {
+		Collection<UDDIRecord> uddiRecords = listSupplierRecords();
+		SupplierClient client;
+		for (UDDIRecord record : uddiRecords) {
+			try {
+				client = new SupplierClient(record.getUrl());
 				try {
-					client = new SupplierClient(record.getUrl());
-					try {
-						List<ProductView> productsList = client.searchProducts(descText);
-						for (ProductView productView : productsList) {
-							Item item = new Item(productView.getId(), record.getOrgName(), productView.getDesc(), productView.getPrice());
-							result.add(newItemView(item));
-						}
-					} catch (BadText_Exception e) {
-						throwInvalidText("Invalid product text!");
+					List<ProductView> productsList = client.searchProducts(descText);
+					for (ProductView productView : productsList) {
+						Item item = new Item(productView.getId(), record.getOrgName(), productView.getDesc(), productView.getPrice());
+						result.add(newItemView(item));
 					}
-				} catch (SupplierClientException | WebServiceException e) {
-					//TODO
+				} catch (BadText_Exception e) {
+					throwInvalidText("Invalid product text!");
 				}
+			} catch (SupplierClientException | WebServiceException e) {
+				System.err.printf("%s didn't not respond to searchProducts in the searchItems operation.", record.getOrgName());
 			}
-
-		} catch (UDDINamingException e) {
-			String msg = String.format("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			System.err.println(msg);
-			e.printStackTrace();
 		}
 
-		Collections.sort(result, (itemView1, itemView2) -> {
-			int nameComparison = itemView1.getItemId().getProductId().compareTo(itemView2.getItemId().getProductId());
-			if (nameComparison != 0)
-				return nameComparison;
-			return itemView1.getPrice() - itemView2.getPrice();
-		});
+		Comparator<ItemView> comparator = Comparator.comparing(itemView -> itemView.getItemId().getProductId());
+		comparator = comparator.thenComparing(ItemView::getPrice);
+		result.sort(comparator);
 		return result;
 	}
 
@@ -133,6 +122,10 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (cartId.length() == 0) {
 			throwInvalidCartId("Cart id cannot be empty or whitespace!");
 		}
+		if (!isAlphanumeric(cartId)) {
+			throwInvalidCartId("Cart id must be alphanumeric!");
+		}
+
 		if (creditCardNr == null) {
 			throwInvalidCreditCard("Credit card cannot be null!");
 		}
@@ -140,7 +133,6 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (creditCardNr.length() == 0) {
 			throwInvalidCreditCard("Credit card cannot be empty or whitespace!");
 		}
-
 		try {
 			CreditCardClient creditCardClient = new CreditCardClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_CC_WS_URL));
 			if (!creditCardClient.validateNumber(creditCardNr)) {
@@ -149,7 +141,6 @@ public class MediatorPortImpl implements MediatorPortType {
 		} catch (CreditCardClientException | WebServiceException e) {
 			throwInvalidCreditCard("Couldn't connect to the credit card verifier!");
 		}
-
 		Cart cart = Mediator.getInstance().getCart(cartId);
 		if (cart.getItems().size() == 0) {
 			throwEmptyCartException("The cart can't be empty!");
@@ -157,31 +148,27 @@ public class MediatorPortImpl implements MediatorPortType {
 
 		List<CartItem> purchasedItems = new ArrayList<>();
 		List<CartItem> droppedItems = new ArrayList<>();
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			for (CartItem cartItem : cart.getItems()) {
-				UDDIRecord record = uddiNaming.lookupRecord(cartItem.getItem().getId().getSupplierId());
+		for (CartItem cartItem : cart.getItems()) {
+			UDDIRecord record = lookupSupplierRecord(cartItem.getItem().getId().getSupplierId());
+			if (record == null) {
+				droppedItems.add(cartItem);
+				continue;
+			}
+			try {
+				SupplierClient client = new SupplierClient(record.getUrl());
 				try {
-					SupplierClient client = new SupplierClient(record.getUrl());
-					try {
-						client.buyProduct(cartItem.getItem().getId().getProductId(), cartItem.getQuantity());
-						purchasedItems.add(cartItem);
-					} catch (BadProductId_Exception | BadQuantity_Exception | InsufficientQuantity_Exception e) {
-						droppedItems.add(cartItem);
-					}
-				} catch (SupplierClientException | WebServiceException e) {
+					client.buyProduct(cartItem.getItem().getId().getProductId(), cartItem.getQuantity());
+					purchasedItems.add(cartItem);
+				} catch (BadProductId_Exception | BadQuantity_Exception | InsufficientQuantity_Exception e) {
 					droppedItems.add(cartItem);
 				}
+			} catch (SupplierClientException | WebServiceException e) {
+				System.err.printf("%s didn't not respond to buyProduct in the buyCart operation.", record.getOrgName());
+				droppedItems.add(cartItem);
 			}
-		} catch (UDDINamingException e) {
-			String msg = String.format("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			System.err.println(msg);
-			e.printStackTrace();
 		}
 		return newShoppingResultView(Mediator.getInstance().registerPurchase(cartId, purchasedItems, droppedItems));
 	}
-
 
 	@Override
 	public void addToCart(String cartId, ItemIdView itemId, int itemQty) throws InvalidCartId_Exception, InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
@@ -191,6 +178,9 @@ public class MediatorPortImpl implements MediatorPortType {
 		cartId = cartId.trim();
 		if (cartId.length() == 0) {
 			throwInvalidCartId("Cart id cannot be empty or whitespace!");
+		}
+		if (!isAlphanumeric(cartId)) {
+			throwInvalidCartId("Cart id must be alphanumeric!");
 		}
 		if (itemId == null) {
 			throwInvalidItemId("Item id cannot be null!");
@@ -205,36 +195,35 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (productId.length() == 0 || supplierId.length() == 0) {
 			throwInvalidItemId("Ids cannot be empty or whitespace!");
 		}
+		if (!isAlphanumeric(productId)) {
+			throwInvalidItemId("Product id must be alphanumeric!");
+		}
+		if (!isAlphanumericWithUnderscore(supplierId)) {
+			throwInvalidItemId("Supplier id must be alphanumeric!");
+		}
 		if (itemQty <= 0) {
 			throwInvalidQuantity("Quantity cannot be zero or negative!");
 		}
 
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
+		UDDIRecord record = lookupSupplierRecord(supplierId);
+		if (record == null) throwInvalidItemId("Couldn't lookup supplier!");
 		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			UDDIRecord record = uddiNaming.lookupRecord(suppliersWsNameFormat);
-			SupplierClient client;
+			SupplierClient client = new SupplierClient(record.getUrl());
 			try {
-				client = new SupplierClient(record.getUrl());
-				try {
-					ProductView productView = client.getProduct(productId);
-					int quantity = Mediator.getInstance().getItemQuantity(cartId, productId, supplierId) + itemQty;
-					if (productView.getQuantity() > quantity) {
-						Mediator.getInstance().addToCart(cartId, productId, supplierId, productView.getDesc(), productView.getPrice(), itemQty);
-					} else {
-						throwNotEnoughItems("Supplier doesn't have enough quantity!");
-					}
-				} catch (BadProductId_Exception e) {
-					throwInvalidItemId("Invalid product id!");
+				ProductView productView = client.getProduct(productId);
+				if (productView == null) throwInvalidItemId("Supplier doesn't have that product!");
+				int quantity = Mediator.getInstance().getItemQuantity(cartId, productId, supplierId) + itemQty;
+				if (productView.getQuantity() >= quantity) {
+					Mediator.getInstance().addToCart(cartId, productId, supplierId, productView.getDesc(), productView.getPrice(), itemQty);
+				} else {
+					throwNotEnoughItems("Supplier doesn't have enough quantity!");
 				}
-			} catch (SupplierClientException | WebServiceException e) {
-				//TODO
+			} catch (BadProductId_Exception e) {
+				throwInvalidItemId("Invalid product id!");
 			}
-		} catch (UDDINamingException e) {
-			String msg = String.format("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			System.err.println(msg);
-			e.printStackTrace();
+		} catch (SupplierClientException | WebServiceException e) {
+			System.err.printf("%s didn't not respond to getProduct in the addToCart operation.", record.getOrgName());
+			throwInvalidItemId("Couldn't confirm product with supplier!");
 		}
 	}
 
@@ -249,30 +238,22 @@ public class MediatorPortImpl implements MediatorPortType {
 		StringBuilder result = new StringBuilder();
 		result.append("Hello ").append(name).append(" from ").append(wsName).append(System.lineSeparator());
 
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
-		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			Collection<UDDIRecord> uddiRecords = uddiNaming.listRecords(suppliersWsNameFormat);
-			result.append("Found ").append(uddiRecords.size()).append(" suppliers:").append(System.lineSeparator());
-			Iterator<UDDIRecord> uddiRecordsIterator = uddiRecords.iterator();
-			SupplierClient client;
-			while (uddiRecordsIterator.hasNext()) {
-				UDDIRecord record = uddiRecordsIterator.next();
-				result.append("  - ").append(record.getOrgName()).append(": ");
-				try {
-					client = new SupplierClient(record.getUrl());
-					result.append(client.ping(name));
-				} catch (SupplierClientException | WebServiceException e) {
-					result.append("Not responding...");
-				}
-				if (uddiRecordsIterator.hasNext())
-					result.append(System.lineSeparator());
+		Collection<UDDIRecord> uddiRecords = listSupplierRecords();
+		result.append("Found ").append(uddiRecords.size()).append(" suppliers:").append(System.lineSeparator());
+		Iterator<UDDIRecord> uddiRecordsIterator = uddiRecords.iterator();
+		SupplierClient client;
+		while (uddiRecordsIterator.hasNext()) {
+			UDDIRecord record = uddiRecordsIterator.next();
+			result.append("  - ").append(record.getOrgName()).append(": ");
+			try {
+				client = new SupplierClient(record.getUrl());
+				result.append(client.ping(name));
+			} catch (SupplierClientException | WebServiceException e) {
+				System.err.printf("%s didn't not respond to ping in the ping operation.", record.getOrgName());
+				result.append("Not responding...");
 			}
-		} catch (UDDINamingException e) {
-			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			e.printStackTrace();
-			result.append("Unable to search for suppliers.");
+			if (uddiRecordsIterator.hasNext())
+				result.append(System.lineSeparator());
 		}
 		return result.toString();
 	}
@@ -280,22 +261,15 @@ public class MediatorPortImpl implements MediatorPortType {
 	@Override
 	public void clear() {
 		Mediator.getInstance().reset();
-		String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
-		String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
-		try {
-			UDDINaming uddiNaming = new UDDINaming(suppliersUddiUrl);
-			Collection<UDDIRecord> uddiRecords = uddiNaming.listRecords(suppliersWsNameFormat);
-			SupplierClient client;
-			for (UDDIRecord record : uddiRecords) {
-				try {
-					client = new SupplierClient(record.getUrl());
-					client.clear();
-				} catch (SupplierClientException | WebServiceException ignored) {
-				}
+		Collection<UDDIRecord> uddiRecords = listSupplierRecords();
+		SupplierClient client;
+		for (UDDIRecord record : uddiRecords) {
+			try {
+				client = new SupplierClient(record.getUrl());
+				client.clear();
+			} catch (SupplierClientException | WebServiceException e) {
+				System.err.printf("%s didn't not respond to clear in the clear operation.", record.getOrgName());
 			}
-		} catch (UDDINamingException e) {
-			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
-			e.printStackTrace();
 		}
 	}
 
@@ -306,7 +280,39 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	@Override
 	public List<ShoppingResultView> shopHistory() {
-		return Mediator.getInstance().getShoppingResults().stream().map(this::newShoppingResultView).collect(Collectors.toList());
+		return Mediator.getInstance().getShoppingResults().stream()
+				.sorted(Comparator.comparing(ShoppingResult::getTimestamp).reversed())
+				.map(this::newShoppingResultView).collect(Collectors.toList());
+	}
+
+	// Helpers ---------------------------------------------------------
+
+	private UDDIRecord lookupSupplierRecord(String supplierName) {
+		try {
+			return new UDDINaming(suppliersUddiUrl).lookupRecord(supplierName);
+		} catch (UDDINamingException e) {
+			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private Collection<UDDIRecord> listSupplierRecords() {
+		try {
+			return new UDDINaming(suppliersUddiUrl).listRecords(suppliersWsNameFormat);
+		} catch (UDDINamingException e) {
+			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
+			e.printStackTrace();
+		}
+		return Collections.emptyList();
+	}
+
+	private boolean isAlphanumericWithUnderscore(String text) {
+		return text.matches("[a-zA-Z0-9_]+");
+	}
+
+	private boolean isAlphanumeric(String text) {
+		return text.matches("[a-zA-Z0-9]+");
 	}
 
 	// View helpers -----------------------------------------------------
