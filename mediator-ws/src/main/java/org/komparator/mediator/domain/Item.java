@@ -6,11 +6,11 @@ public class Item {
 	private String desc;
 	private int price;
 
-	Item(String productId, String supplierId, String desc, int price) {
+	public Item(String productId, String supplierId, String desc, int price) {
 		this(new ItemId(productId, supplierId), desc, price);
 	}
 
-	Item(ItemId id, String desc, int price) {
+	public Item(ItemId id, String desc, int price) {
 		this.id = id;
 		this.desc = desc;
 		this.price = price;

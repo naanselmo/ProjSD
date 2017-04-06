@@ -18,6 +18,9 @@ public class MediatorConfig {
 	public static final String PROPERTY_WS_NAME_FORMAT = "suppliers.ws.name.format";
 	private static final String DEFAULT_WS_NAME_FORMAT = "T04_Supplier%";
 
+	public static final String PROPERTY_CC_WS_URL = "cc.ws.url";
+	private static final String DEFAULT_CC_WS_URL = "http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc";
+
 	private static Properties loadConfigProperties() {
 		Properties properties = new Properties();
 		try {
@@ -27,6 +30,7 @@ public class MediatorConfig {
 			System.out.printf("Could not load properties file %s, falling back to defaults.", CONFIG_PROP_FILE);
 			properties.setProperty(PROPERTY_SUPPLIERS_UDDI_URL, DEFAULT_SUPPLIERS_UDDI_URL);
 			properties.setProperty(PROPERTY_WS_NAME_FORMAT, DEFAULT_WS_NAME_FORMAT);
+			properties.setProperty(PROPERTY_CC_WS_URL, DEFAULT_CC_WS_URL);
 		}
 		System.out.println(properties);
 		return properties;

@@ -30,6 +30,7 @@
 
         <suppliers.uddi.url>http://${uddi.host}:${uddi.port}/</suppliers.uddi.url>
         <suppliers.uddi.name.format>T04_Supplier%</suppliers.uddi.name.format>
+        <cc.ws.url>http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc</cc.ws.url>
     </properties>
 
     <dependencies>
@@ -49,6 +50,12 @@
         <dependency>
             <groupId>org.komparator.T04</groupId>
             <artifactId>supplier-ws-cli</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- Credit Card -->
+        <dependency>
+            <groupId>org.komparator.T04</groupId>
+            <artifactId>cc-ws-cli</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
