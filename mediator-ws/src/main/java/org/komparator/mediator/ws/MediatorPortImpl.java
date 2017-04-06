@@ -142,6 +142,9 @@ public class MediatorPortImpl implements MediatorPortType {
 			throwInvalidCreditCard("Couldn't connect to the credit card verifier!");
 		}
 		Cart cart = Mediator.getInstance().getCart(cartId);
+		if (cart == null) {
+			throwInvalidCartId("There is no cart with that id!");
+		}
 		if (cart.getItems().size() == 0) {
 			throwEmptyCartException("The cart can't be empty!");
 		}
