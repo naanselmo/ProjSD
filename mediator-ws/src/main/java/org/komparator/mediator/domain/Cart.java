@@ -9,12 +9,12 @@ public class Cart {
 	private String id;
 	private Map<ItemId, CartItem> items;
 
-	public Cart(String id) {
+	Cart(String id) {
 		this.id = id;
 		this.items = new HashMap<>();
 	}
 
-	public void add(Item item, int quantity) {
+	void add(Item item, int quantity) {
 		if (containsItem(item.getId())) {
 			CartItem cartItem = getItem(item.getId());
 			cartItem.updateQuantity(quantity);
@@ -23,11 +23,11 @@ public class Cart {
 		}
 	}
 
-	public boolean containsItem(ItemId itemId) {
+	boolean containsItem(ItemId itemId) {
 		return items.containsKey(itemId);
 	}
 
-	public CartItem getItem(ItemId itemId) {
+	CartItem getItem(ItemId itemId) {
 		return items.get(itemId);
 	}
 

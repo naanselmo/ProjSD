@@ -1,18 +1,16 @@
 package org.komparator.mediator.domain;
 
-import java.util.Objects;
-
 public class Item {
 
 	private ItemId id;
 	private String desc;
 	private int price;
 
-	public Item(String productId, String supplierId, String desc, int price) {
+	Item(String productId, String supplierId, String desc, int price) {
 		this(new ItemId(productId, supplierId), desc, price);
 	}
 
-	public Item(ItemId id, String desc, int price) {
+	Item(ItemId id, String desc, int price) {
 		this.id = id;
 		this.desc = desc;
 		this.price = price;

@@ -5,7 +5,7 @@ public class CartItem {
 	private Item item;
 	private int quantity;
 
-	public CartItem(Item item, int quantity) {
+	CartItem(Item item, int quantity) {
 		this.item = item;
 		this.quantity = quantity;
 	}
@@ -22,7 +22,7 @@ public class CartItem {
 		this.quantity = quantity;
 	}
 
-	public void updateQuantity(int delta) {
+	void updateQuantity(int delta) {
 		this.quantity += delta;
 	}
 

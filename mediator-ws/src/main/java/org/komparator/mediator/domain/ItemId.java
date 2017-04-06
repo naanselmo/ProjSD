@@ -7,7 +7,7 @@ public class ItemId {
 	private String productId;
 	private String supplierId;
 
-	public ItemId(String productId, String supplierId) {
+	ItemId(String productId, String supplierId) {
 		this.productId = productId;
 		this.supplierId = supplierId;
 	}
