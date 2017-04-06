@@ -19,11 +19,16 @@
 
         <mainclass>org.komparator.mediator.ws.MediatorApp</mainclass>
 
-        <uddi.url>http://t04:LF21XE6j@uddi.sd.rnl.tecnico.ulisboa.pt:9090/</uddi.url>
+        <uddi.username>t04</uddi.username>
+        <uddi.password>LF21XE6j</uddi.password>
+        <uddi.port>9090</uddi.port>
+        <uddi.host>uddi.sd.rnl.tecnico.ulisboa.pt</uddi.host>
+        <uddi.url>http://${uddi.username}:${uddi.password}@${uddi.host}:${uddi.port}/</uddi.url>
+
         <ws.name>T04_Mediator</ws.name>
         <ws.url>http://localhost:8080/mediator-ws/endpoint</ws.url>
 
-        <suppliers.uddi.url>${uddi.url}</suppliers.uddi.url>
+        <suppliers.uddi.url>http://${uddi.host}:${uddi.port}/</suppliers.uddi.url>
         <suppliers.uddi.name.format>T04_Supplier%</suppliers.uddi.name.format>
     </properties>
 

@@ -22,8 +22,11 @@
 
         <mainclass>org.komparator.mediator.ws.cli.MediatorClientApp</mainclass>
 
+        <uddi.host>uddi.sd.rnl.tecnico.ulisboa.pt</uddi.host>
+        <uddi.port>9090</uddi.port>
+        <uddi.url>http://${uddi.host}:${uddi.port}/</uddi.url>
+
         <ws.name>T04_Mediator</ws.name>
-        <uddi.url>http://t04:LF21XE6j@uddi.sd.rnl.tecnico.ulisboa.pt:9090/</uddi.url>
     </properties>
 
     <dependencies>

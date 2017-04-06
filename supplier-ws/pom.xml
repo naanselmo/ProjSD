@@ -19,12 +19,17 @@
 
         <mainclass>org.komparator.supplier.ws.SupplierApp</mainclass>
 
+        <uddi.username>t04</uddi.username>
+        <uddi.password>LF21XE6j</uddi.password>
+        <uddi.port>9090</uddi.port>
+        <uddi.host>uddi.sd.rnl.tecnico.ulisboa.pt</uddi.host>
+        <uddi.url>http://${uddi.username}:${uddi.password}@${uddi.host}:${uddi.port}/</uddi.url>
+
         <ws.i>1</ws.i>
         <ws.host>localhost</ws.host>
         <ws.port>808${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/supplier-ws/endpoint</ws.url>
         <ws.name>T04_Supplier${ws.i}</ws.name>
-        <uddi.url>http://t04:LF21XE6j@uddi.sd.rnl.tecnico.ulisboa.pt:9090/</uddi.url>
     </properties>
 
     <dependencies>
