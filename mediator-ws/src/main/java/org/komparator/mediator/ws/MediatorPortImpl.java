@@ -15,7 +15,6 @@ import javax.xml.ws.WebServiceException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @WebService(
 		endpointInterface = "org.komparator.mediator.ws.MediatorPortType",
 		wsdlLocation = "mediator.wsdl",
@@ -28,6 +27,9 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	// end point manager
 	private MediatorEndpointManager endpointManager;
+
+	// Suppliers uddi naming server
+	private UDDINaming suppliersUddi;
 
 	// Suppliers uddi url
 	private String suppliersUddiUrl = MediatorConfig.getProperty(MediatorConfig.PROPERTY_SUPPLIERS_UDDI_URL);
@@ -67,7 +69,10 @@ public class MediatorPortImpl implements MediatorPortType {
 					Item item = new Item(productView.getId(), record.getOrgName(), productView.getDesc(), productView.getPrice());
 					result.add(newItemView(item));
 				} catch (BadProductId_Exception e) {
-					throwInvalidItemId("Invalid product id!");
+					// Just because one supplier finds the product id invalid, doesn't mean others will.
+					// So we decided not to throw the exception and rather just skip the supplier, warning only the mediator.
+//					throwInvalidItemId("Invalid product id!");
+					System.err.printf("%s says %s is an invalid product id.", record.getOrgName(), productId);
 				}
 			} catch (SupplierClientException | WebServiceException ignored) {
 				System.err.printf("%s didn't not respond to getProduct in the getItems operation.", record.getOrgName());
@@ -100,7 +105,10 @@ public class MediatorPortImpl implements MediatorPortType {
 						result.add(newItemView(item));
 					}
 				} catch (BadText_Exception e) {
-					throwInvalidText("Invalid product text!");
+					// Just because one supplier finds the search text invalid, doesn't mean others will.
+					// So we decided not to throw the exception and rather just skip the supplier, warning only the mediator.
+					// throwInvalidText("Invalid product text!");
+					System.err.printf("%s says %s is an invalid product description text.", record.getOrgName(), descText);
 				}
 			} catch (SupplierClientException | WebServiceException e) {
 				System.err.printf("%s didn't not respond to searchProducts in the searchItems operation.", record.getOrgName());
@@ -202,14 +210,14 @@ public class MediatorPortImpl implements MediatorPortType {
 			throwInvalidItemId("Product id must be alphanumeric!");
 		}
 		if (!isAlphanumericWithUnderscore(supplierId)) {
-			throwInvalidItemId("Supplier id must be alphanumeric!");
+			throwInvalidItemId("Supplier id must be alphanumeric and may contain underscores!");
 		}
 		if (itemQty <= 0) {
 			throwInvalidQuantity("Quantity cannot be zero or negative!");
 		}
 
 		UDDIRecord record = lookupSupplierRecord(supplierId);
-		if (record == null) throwInvalidItemId("Couldn't lookup supplier!");
+		if (record == null) throwInvalidItemId(String.format("Could't lookup %s", supplierId));
 		try {
 			SupplierClient client = new SupplierClient(record.getUrl());
 			try {
@@ -289,9 +297,11 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	private UDDIRecord lookupSupplierRecord(String supplierName) {
 		try {
-			return new UDDINaming(suppliersUddiUrl).lookupRecord(supplierName);
+			if (suppliersUddi == null)
+				suppliersUddi = new UDDINaming(suppliersUddiUrl);
+			return suppliersUddi.lookupRecord(supplierName);
 		} catch (UDDINamingException e) {
-			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
+			System.err.printf("Failed to lookup on UDDI at %s!", suppliersUddiUrl);
 			e.printStackTrace();
 		}
 		return null;
@@ -299,9 +309,11 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	private Collection<UDDIRecord> listSupplierRecords() {
 		try {
-			return new UDDINaming(suppliersUddiUrl).listRecords(suppliersWsNameFormat);
+			if (suppliersUddi == null)
+				suppliersUddi = new UDDINaming(suppliersUddiUrl);
+			return suppliersUddi.listRecords(suppliersWsNameFormat);
 		} catch (UDDINamingException e) {
-			System.err.printf("Failed to lookup Suppliers on UDDI at %s!", suppliersUddiUrl);
+			System.err.printf("Failed to lookup on UDDI at %s!", suppliersUddiUrl);
 			e.printStackTrace();
 		}
 		return Collections.emptyList();

@@ -1,5 +1,6 @@
 package org.komparator.mediator.domain;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -29,8 +30,8 @@ public class ShoppingResult {
 	public ShoppingResult(String id, Result result, List<CartItem> purchasedItems, List<CartItem> droppedItems, int totalPrice) {
 		this.id = id;
 		this.result = result;
-		this.purchasedItems = purchasedItems;
-		this.droppedItems = droppedItems;
+		this.purchasedItems = Collections.unmodifiableList(purchasedItems);
+		this.droppedItems = Collections.unmodifiableList(droppedItems);
 		this.totalPrice = totalPrice;
 	}
 
