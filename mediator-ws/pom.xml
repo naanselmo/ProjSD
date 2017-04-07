@@ -28,8 +28,11 @@
         <ws.name>T04_Mediator</ws.name>
         <ws.url>http://localhost:8080/mediator-ws/endpoint</ws.url>
 
-        <suppliers.uddi.url>http://${uddi.host}:${uddi.port}/</suppliers.uddi.url>
+        <suppliers.uddi.host>uddi.sd.rnl.tecnico.ulisboa.pt</suppliers.uddi.host>
+        <suppliers.uddi.port>9090</suppliers.uddi.port>
+        <suppliers.uddi.url>http://${suppliers.uddi.host}:${suppliers.uddi.port}/</suppliers.uddi.url>
         <suppliers.uddi.name.format>T04_Supplier%</suppliers.uddi.name.format>
+
         <cc.ws.url>http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc</cc.ws.url>
     </properties>
 
