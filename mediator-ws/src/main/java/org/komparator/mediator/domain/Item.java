@@ -10,7 +10,7 @@ public class Item {
 		this(new ItemId(productId, supplierId), desc, price);
 	}
 
-	public Item(ItemId id, String desc, int price) {
+	Item(ItemId id, String desc, int price) {
 		this.id = id;
 		this.desc = desc;
 		this.price = price;

@@ -215,10 +215,7 @@ public class MediatorPortImpl implements MediatorPortType {
 			try {
 				ProductView productView = client.getProduct(productId);
 				if (productView == null) throwInvalidItemId("Supplier doesn't have that product!");
-				int quantity = Mediator.getInstance().getItemQuantity(cartId, productId, supplierId) + itemQty;
-				if (productView.getQuantity() >= quantity) {
-					Mediator.getInstance().addToCart(cartId, productId, supplierId, productView.getDesc(), productView.getPrice(), itemQty);
-				} else {
+				if (!Mediator.getInstance().testAndAddToCart(cartId, productId, supplierId, productView.getDesc(), productView.getPrice(), itemQty, productView.getQuantity())) {
 					throwNotEnoughItems("Supplier doesn't have enough quantity!");
 				}
 			} catch (BadProductId_Exception e) {
