@@ -24,7 +24,7 @@ public class BuyCartIT extends BaseWithSuppliersIT {
             ProductView product = new ProductView();
     		product.setId("TP");
     		product.setDesc("TestProd");
-    		product.setPrice(1);
+    		product.setPrice(2);
     		product.setQuantity(5);
             supplierClients[0].createProduct(product);
         }
@@ -32,7 +32,7 @@ public class BuyCartIT extends BaseWithSuppliersIT {
             ProductView product = new ProductView();
     		product.setId("TP2");
     		product.setDesc("TestProd2");
-    		product.setPrice(1);
+    		product.setPrice(3);
     		product.setQuantity(7);
             supplierClients[1].createProduct(product);
         }
@@ -83,10 +83,17 @@ public class BuyCartIT extends BaseWithSuppliersIT {
         mediatorClient.buyCart("tc", null);
     }
 
+    @Test(expected = InvalidCartId_Exception.class)
+    public void validateCartBeforeCreditCardTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
+        // Just to make sure this module doesn't try to manipulate the null reference
+        // All other checks are assumed to be handled by cc-ws
+        mediatorClient.buyCart(null, null);
+    }
+
     // Behavioral tests: check if it actually does what we want
 
     @Test(expected = InvalidCartId_Exception.class)
-    public void emptyCartTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
+    public void nonExistentCartTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
         mediatorClient.buyCart("TC", "4024007102923926");
     }
 
@@ -111,6 +118,7 @@ public class BuyCartIT extends BaseWithSuppliersIT {
         assertEquals(Result.COMPLETE, resultComplete.getResult());
         assertEquals(2, resultComplete.getPurchasedItems().size());
         assertTrue(resultComplete.getDroppedItems().isEmpty());
+        assertEquals(5, resultComplete.getTotalPrice());
     }
 
     @Test
@@ -137,6 +145,7 @@ public class BuyCartIT extends BaseWithSuppliersIT {
         assertEquals(Result.PARTIAL, resultPartial.getResult());
         assertEquals(1, resultPartial.getPurchasedItems().size());
         assertEquals(1, resultPartial.getDroppedItems().size());
+        assertEquals(3, resultPartial.getTotalPrice());
     }
 
     @Test
@@ -164,6 +173,7 @@ public class BuyCartIT extends BaseWithSuppliersIT {
         assertEquals(Result.EMPTY, resultEmpty.getResult());
         assertTrue(resultEmpty.getPurchasedItems().isEmpty());
         assertEquals(2, resultEmpty.getDroppedItems().size());
+        assertEquals(0, resultEmpty.getTotalPrice());
     }
 
     @Test
