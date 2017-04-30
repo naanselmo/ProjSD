@@ -77,9 +77,13 @@ public class BuyCartIT extends BaseWithSuppliersIT {
     }
 
     @Test(expected = InvalidCreditCard_Exception.class)
-    public void nullCreditCardTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
+    public void nullCreditCardTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception, InvalidItemId_Exception {
         // Just to make sure this module doesn't try to manipulate the null reference
         // All other checks are assumed to be handled by cc-ws
+        ItemIdView itemId = new ItemIdView();
+        itemId.setProductId("TP");
+        itemId.setSupplierId(supplierNames[0]);
+        mediatorClient.addToCart("tc", itemId, 1);
         mediatorClient.buyCart("tc", null);
     }
 
@@ -95,6 +99,11 @@ public class BuyCartIT extends BaseWithSuppliersIT {
     @Test(expected = InvalidCartId_Exception.class)
     public void nonExistentCartTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
         mediatorClient.buyCart("TC", "4024007102923926");
+    }
+
+    @Test(expected = InvalidCartId_Exception.class)
+    public void nonExistentCartTestWithInvalidCreditCardTest() throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
+        mediatorClient.buyCart("xyz", "0293");
     }
 
     @Test

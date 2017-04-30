@@ -133,6 +133,13 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (!isAlphanumeric(cartId)) {
 			throwInvalidCartId("Cart id must be alphanumeric!");
 		}
+		Cart cart = Mediator.getInstance().getCart(cartId);
+		if (cart == null) {
+			throwInvalidCartId("There is no cart with that id!");
+		}
+		if (cart.getItems().size() == 0) {
+			throwEmptyCartException("The cart can't be empty!");
+		}
 
 		if (creditCardNr == null) {
 			throwInvalidCreditCard("Credit card cannot be null!");
@@ -148,13 +155,6 @@ public class MediatorPortImpl implements MediatorPortType {
 			}
 		} catch (CreditCardClientException | WebServiceException e) {
 			throwInvalidCreditCard("Couldn't connect to the credit card verifier!");
-		}
-		Cart cart = Mediator.getInstance().getCart(cartId);
-		if (cart == null) {
-			throwInvalidCartId("There is no cart with that id!");
-		}
-		if (cart.getItems().size() == 0) {
-			throwEmptyCartException("The cart can't be empty!");
 		}
 
 		List<CartItem> purchasedItems = new ArrayList<>();
