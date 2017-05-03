@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <!-- http://maven.apache.org/pom.html#Quick_Overview -->
 
@@ -30,10 +30,17 @@
         <ws.port>808${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/supplier-ws/endpoint</ws.url>
         <ws.name>T04_Supplier${ws.i}</ws.name>
+
+        <!-- Keys -->
+        <certificate.path>${ws.name}.cer</certificate.path>
+        <keystore.path>${ws.name}.jks</keystore.path>
+        <keystore.password>${uddi.password}</keystore.password>
+        <keystore.key.alias>t04_supplier${ws.i}</keystore.key.alias>
+        <keystore.key.password>${keystore.password}</keystore.key.password>
     </properties>
 
     <dependencies>
-    	<!-- JAX-WS -->
+        <!-- JAX-WS -->
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
@@ -60,6 +67,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

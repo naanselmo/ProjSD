@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <!-- http://maven.apache.org/pom.html#Quick_Overview -->
 
@@ -34,10 +34,17 @@
         <suppliers.uddi.name.format>T04_Supplier%</suppliers.uddi.name.format>
 
         <cc.ws.url>http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc</cc.ws.url>
+
+        <!-- Keys -->
+        <certificate.path>${ws.name}.cer</certificate.path>
+        <keystore.path>${ws.name}.jks</keystore.path>
+        <keystore.password>${uddi.password}</keystore.password>
+        <keystore.key.alias>t04_mediator</keystore.key.alias>
+        <keystore.key.password>${keystore.password}</keystore.key.password>
     </properties>
 
     <dependencies>
-    	<!-- JAX-WS -->
+        <!-- JAX-WS -->
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
