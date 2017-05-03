@@ -10,6 +10,7 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINamingException;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
 
+import javax.jws.HandlerChain;
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
 import java.util.*;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 		targetNamespace = "http://ws.mediator.komparator.org/",
 		serviceName = "MediatorService"
 )
+@HandlerChain(file = "/mediator-ws_handler-chain.xml")
 public class MediatorPortImpl implements MediatorPortType {
 
 	// end point manager
