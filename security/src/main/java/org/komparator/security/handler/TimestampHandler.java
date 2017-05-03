@@ -23,7 +23,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final int TIMESTAMP_TIMEOUT = 3000;
 
 	private SortedMap<Long, Set<String>> recent_nonces = new TreeMap<Long, Set<String>>();
-	SecureRandom randomizer = new SecureRandom();
+	private SecureRandom randomizer = new SecureRandom();
 
 	@Override
 	public Set<QName> getHeaders() {
