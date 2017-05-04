@@ -21,12 +21,6 @@ public class MediatorConfig {
 	public static final String PROPERTY_CC_WS_URL = "cc.ws.url";
 	private static final String DEFAULT_CC_WS_URL = "http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc";
 
-	public static final String PROPERTY_CERTIFICATE_PATH = "certificate.path";
-	public static final String PROPERTY_KEYSTORE_PATH = "keystore.path";
-	public static final String PROPERTY_KEYSTORE_PASSWORD = "keystore.password";
-	public static final String PROPERTY_KEYSTORE_KEY_ALIAS = "keystore.key.alias";
-	public static final String PROPERTY_KEYSTORE_KEY_PASSWORD = "keystore.key.password";
-
 	private static Properties loadConfigProperties() {
 		Properties properties = new Properties();
 		try {

@@ -35,9 +35,11 @@
 
         <cc.ws.url>http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc</cc.ws.url>
 
-        <!-- Keys -->
-        <certificate.path>${ws.name}.cer</certificate.path>
-        <keystore.path>${ws.name}.jks</keystore.path>
+        <!-- Security config -->
+        <ca.ws.url>http://sec.sd.rnl.tecnico.ulisboa.pt:8081/ca</ca.ws.url>
+        <ca.id>${ws.name}</ca.id>
+        <certificate.path>${ca.id}.cer</certificate.path>
+        <keystore.path>${ca.id}.jks</keystore.path>
         <keystore.password>${uddi.password}</keystore.password>
         <keystore.key.alias>t04_mediator</keystore.key.alias>
         <keystore.key.password>${keystore.password}</keystore.key.password>

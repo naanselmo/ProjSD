@@ -20,10 +20,10 @@ public class CryptoUtil {
 	private static final String KEYSTORE_TYPE = "JKS";
 	private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
-	public static KeyStore getKeyStore(InputStream keyStoreInputString, String storePassword) throws CryptoException {
+	public static KeyStore getKeyStore(InputStream keyStoreInputStream, String storePassword) throws CryptoException {
 		try {
 			KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
-			keyStore.load(keyStoreInputString, storePassword.toCharArray());
+			keyStore.load(keyStoreInputStream, storePassword.toCharArray());
 			return keyStore;
 		} catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
 			throw new CryptoException("Couldn't load key store.", e);
