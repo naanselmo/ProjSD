@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 
@@ -22,7 +23,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.TimestampHandler";
 	private static final int TIMESTAMP_TIMEOUT = 3000;
 
-	private SortedMap<Long, Set<String>> recent_nonces = new TreeMap<Long, Set<String>>();
+	private SortedMap<Long, Set<String>> recent_nonces = new TreeMap<>();
 	private SecureRandom randomizer = new SecureRandom();
 
 	@Override
@@ -52,7 +53,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 				element = header.addChildElement(name);
 				byte[] nonce = new byte[16];
 				randomizer.nextBytes(nonce);
-				element.addTextNode(new String(nonce));
+				element.addTextNode(Base64.getEncoder().encodeToString(nonce));
 			} else {
 				if (header == null) {
 					generateSOAPErrorMessage(message, "No SOAP Header.");
@@ -83,7 +84,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 						generateSOAPErrorMessage(message, "Repeated nonce was received.");
 					}
 				} else {
-					Set<String> timestamped_nonces = new HashSet<String>();
+					Set<String> timestamped_nonces = new HashSet<>();
 					timestamped_nonces.add(nonce);
 					recent_nonces.put(timestamp, timestamped_nonces);
 				}
