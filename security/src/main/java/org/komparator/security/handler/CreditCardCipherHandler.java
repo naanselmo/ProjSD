@@ -79,13 +79,14 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 				}
 
 				byte[] byteContent = creditCardNode.getNodeValue().getBytes();
+				byte[] cipheredContent;
 				try {
-					CryptoUtil.asymCipher(byteContent, publicKey);
+					cipheredContent = CryptoUtil.asymCipher(byteContent, publicKey);
 				} catch (CryptoException e) {
 					e.printStackTrace();
 					return false;
 				}
-				creditCardNode.setNodeValue(Base64.getEncoder().encodeToString(byteContent));
+				creditCardNode.setNodeValue(Base64.getEncoder().encodeToString(cipheredContent));
 			} else {
 				if (privateKey == null) {
 					try {
@@ -103,14 +104,15 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 					}
 				}
 
-				byte[] byteContent = creditCardNode.getNodeValue().getBytes();
+				byte[] cipheredContent = Base64.getDecoder().decode(creditCardNode.getNodeValue());
+				byte[] byteContent;
 				try {
-					CryptoUtil.asymDecipher(byteContent, privateKey);
+					byteContent = CryptoUtil.asymDecipher(cipheredContent, privateKey);
 				} catch (CryptoException e) {
 					e.printStackTrace();
 					return false;
 				}
-				creditCardNode.setNodeValue(Base64.getEncoder().encodeToString(byteContent));
+				creditCardNode.setNodeValue(new String(byteContent));
 			}
 		} catch (SOAPException e) {
 			e.printStackTrace();
