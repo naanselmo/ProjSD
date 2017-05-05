@@ -196,7 +196,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 		} catch (SOAPException e) {
 			e.printStackTrace();
 			return false;
-		} catch (NullPointerException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}

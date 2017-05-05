@@ -51,7 +51,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					header = envelope.addHeader();
 				}
 
-				message.setProperty(SENDER_ID, SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
+				// Add sender ID
+				Name name = envelope.createName(NAME, NAMESPACE, NAMESPACE_URI);
+				SOAPElement element = header.addChildElement(name);
+				element.addTextNode(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_ID));
 
 				if (privateKey == null) {
 					try {
@@ -75,8 +78,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				String stringSignature = Base64.getEncoder().encodeToString(byteSignature);
 
 				// Insert signature
-				Name name = envelope.createName(NAME, NAMESPACE, NAMESPACE_URI);
-				SOAPElement element = header.addChildElement(name);
+				name = envelope.createName(NAME, NAMESPACE, NAMESPACE_URI);
+				element = header.addChildElement(name);
 				element.addTextNode(stringSignature);
 			} else {
 				if (header == null) {
@@ -102,8 +105,14 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					}
 				}
 
+				// Get sender's name
+				Node nodeSender = header.getElementsByTagNameNS(NAMESPACE_URI, SENDER_ID).item(0);
+				if (nodeSender == null || nodeSender.getFirstChild() == null ) {
+					generateSOAPErrorMessage(message, "No properly formatted signature element found in SOAP header.");
+				}
+				String sender = nodeSender.getFirstChild().getNodeValue();
+
 				// Get sender's certificate
-				String sender = message.getProperty(SENDER_ID).toString();
 				Certificate certificate;
 				if (localCertificates.containsKey(sender)) {
 					certificate = localCertificates.get(sender);
@@ -127,6 +136,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 			}
 		} catch (SOAPException e) {
+			e.printStackTrace();
+			return false;
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
