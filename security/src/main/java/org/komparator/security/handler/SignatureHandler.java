@@ -70,7 +70,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 
 				// Generate signature
-				byte[] byteContent = part.getValue().getBytes();
+				byte[] byteContent = part.getTextContent().getBytes();
 				byte[] byteSignature = CryptoUtil.makeDigitalSignature(privateKey, byteContent);
 				String stringSignature = Base64.getEncoder().encodeToString(byteSignature);
 
@@ -121,7 +121,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 
 				// Verify signature
-				byte[] byteContent = part.getValue().getBytes();
+				byte[] byteContent = part.getTextContent().getBytes();
 				if (!CryptoUtil.verifyDigitalSignature(certificate, byteContent, byteSignature)) {
 					generateSOAPErrorMessage(message, "Signature mismatch!");
 				}
