@@ -18,6 +18,12 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <!-- Certification Authority -->
+        <dependency>
+            <groupId>org.komparator.T04</groupId>
+            <artifactId>ca-ws-cli</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <properties>
