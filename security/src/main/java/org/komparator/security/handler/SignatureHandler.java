@@ -103,7 +103,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				String sender = message.getProperty(SENDER_ID).toString();
 				Certificate certificate;
 				try {
-					certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(sender));
+					certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(SENDER_ID));
+					if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
+						generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
+					}
 				} catch (CryptoException e)	{
 					e.printStackTrace();
 					return false;

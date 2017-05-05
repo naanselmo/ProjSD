@@ -67,7 +67,11 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 
         if (publicKey == null) {
           try {
-            publicKey = CryptoUtil.getKeyFromCertificate(CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(OPERATION_TARGET)));
+						Certificate certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(OPERATION_TARGET));
+						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
+							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
+						}
+            publicKey = CryptoUtil.getKeyFromCertificate(certificate);
           } catch (CryptoException e) {
             e.printStackTrace();
             return false;

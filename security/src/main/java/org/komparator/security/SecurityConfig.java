@@ -11,7 +11,7 @@ public class SecurityConfig {
 	private static final Properties CONFIG_PROPERTIES = loadConfigProperties();
 
 	// CA certificate path
-	private static final String CA_CERTIFICATE_PATH = "/ca.cer";
+	public static final String CA_CERTIFICATE_PATH = "/ca.cer";
 
 	// Properties names and default values.
 	public static final String PROPERTY_CA_ID = "ca.id";
