@@ -23,12 +23,12 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 	private static final String NAME = "cipher";
 	private static final String NAMESPACE = "hd1";
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.CreditCardCipherHandler";
-  private static final String OPERATION_NAME = "buyCart";
-  private static final String OPERATION_TARGET = "T04_Mediator";
+	private static final String OPERATION_NAME = "buyCart";
+	private static final String OPERATION_TARGET = "T04_Mediator";
 
-  private PublicKey publicKey;
-  private PrivateKey privateKey;
-  private CAClient certificateAuthority;
+	private PublicKey publicKey;
+	private PrivateKey privateKey;
+	private CAClient certificateAuthority;
 
 	@Override
 	public Set<QName> getHeaders() {
@@ -39,24 +39,24 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 	public boolean handleMessage(SOAPMessageContext context) {
 		try {
 			SOAPMessage message = context.getMessage();
-      SOAPEnvelope envelope = message.getSOAPPart().getEnvelope();
+			SOAPEnvelope envelope = message.getSOAPPart().getEnvelope();
 			Boolean outbound = (Boolean) context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
-      Boolean isBuyCart = envelope.getBody() != null &&
-                          envelope.getBody().getFirstChild() != null &&
-                          envelope.getBody().getFirstChild().getLocalName().equals(OPERATION_NAME);
+			Boolean isBuyCart = envelope.getBody() != null &&
+													envelope.getBody().getFirstChild() != null &&
+													envelope.getBody().getFirstChild().getLocalName().equals(OPERATION_NAME);
 
-      if (!isBuyCart) {
-        return true;
-      }
+			if (!isBuyCart) {
+				return true;
+			}
 
-      if (envelope.getBody().getFirstChild().getLastChild() == null || envelope.getBody().getFirstChild().getLastChild().getFirstChild() == null) {
-        generateSOAPErrorMessage(message, "BuyCart operation was improperly formatted, missing CreditCardNr.");
-      }
+			if (envelope.getBody().getFirstChild().getLastChild() == null || envelope.getBody().getFirstChild().getLastChild().getFirstChild() == null) {
+				generateSOAPErrorMessage(message, "BuyCart operation was improperly formatted, missing CreditCardNr.");
+			}
 
-      Node creditCardNode = envelope.getBody().getFirstChild().getLastChild().getFirstChild();
+			Node creditCardNode = envelope.getBody().getFirstChild().getLastChild().getFirstChild();
 
 			if (outbound) {
-        if (certificateAuthority == null){
+				if (certificateAuthority == null){
 					try {
 						certificateAuthority = new CAClient(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
 					} catch (CAClientException e) {
@@ -65,51 +65,51 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 					}
 				}
 
-        if (publicKey == null) {
-          try {
+				if (publicKey == null) {
+					try {
 						Certificate certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(OPERATION_TARGET));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
 							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
 						}
-            publicKey = CryptoUtil.getKeyFromCertificate(certificate);
-          } catch (CryptoException e) {
-            e.printStackTrace();
-            return false;
-          }
-        }
+						publicKey = CryptoUtil.getKeyFromCertificate(certificate);
+					} catch (CryptoException e) {
+						e.printStackTrace();
+						return false;
+					}
+				}
 
 				byte[] byteContent = creditCardNode.getNodeValue().getBytes();
-        try {
-          CryptoUtil.asymCipher(byteContent, publicKey);
-        } catch (CryptoException e) {
-          e.printStackTrace();
-          return false;
-        }
+				try {
+					CryptoUtil.asymCipher(byteContent, publicKey);
+				} catch (CryptoException e) {
+					e.printStackTrace();
+					return false;
+				}
 				creditCardNode.setNodeValue(Base64.getEncoder().encodeToString(byteContent));
 			} else {
-        if (privateKey == null) {
-          try {
-            privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
-              SecurityConfig.getProperty(
-                SecurityConfig.PROPERTY_KEYSTORE_PATH),
-                SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
-              ),
-              SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_ALIAS),
-              SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_PASSWORD)
-            );
-          } catch (CryptoException e) {
-            e.printStackTrace();
-            return false;
-          }
-        }
+				if (privateKey == null) {
+					try {
+						privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
+							SecurityConfig.getProperty(
+								SecurityConfig.PROPERTY_KEYSTORE_PATH),
+								SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
+							),
+							SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_ALIAS),
+							SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_PASSWORD)
+						);
+					} catch (CryptoException e) {
+						e.printStackTrace();
+						return false;
+					}
+				}
 
 				byte[] byteContent = creditCardNode.getNodeValue().getBytes();
-        try {
-          CryptoUtil.asymDecipher(byteContent, privateKey);
-        } catch (CryptoException e) {
-          e.printStackTrace();
-          return false;
-        }
+				try {
+					CryptoUtil.asymDecipher(byteContent, privateKey);
+				} catch (CryptoException e) {
+					e.printStackTrace();
+					return false;
+				}
 				creditCardNode.setNodeValue(Base64.getEncoder().encodeToString(byteContent));
 			}
 		} catch (SOAPException e) {

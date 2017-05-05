@@ -25,8 +25,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.SignatureHandler";
 	private static final String SENDER_ID = "sender_id";
 
-  private PublicKey publicKey;
-  private PrivateKey privateKey;
+	private PublicKey publicKey;
+	private PrivateKey privateKey;
 	private CAClient certificateAuthority;
 
 	@Override
@@ -50,21 +50,21 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 				message.setProperty(SENDER_ID, SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
 
-        if (privateKey == null) {
-          try {
-            privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
-              SecurityConfig.getProperty(
-                SecurityConfig.PROPERTY_KEYSTORE_PATH),
-                SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
-              ),
-              SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_ALIAS),
-              SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_PASSWORD)
-            );
-          } catch (CryptoException e) {
-            e.printStackTrace();
-            return false;
-          }
-        }
+				if (privateKey == null) {
+					try {
+						privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
+							SecurityConfig.getProperty(
+								SecurityConfig.PROPERTY_KEYSTORE_PATH),
+								SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
+							),
+							SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_ALIAS),
+							SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_KEY_PASSWORD)
+						);
+					} catch (CryptoException e) {
+						e.printStackTrace();
+						return false;
+					}
+				}
 
 				// Generate signature
 				byte[] byteContent = part.getValue().getBytes();
