@@ -18,7 +18,7 @@ import javax.crypto.SecretKey;
 public class CryptoUtil {
 
 	private static final String CIPHER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
-	private static final String SYMMETRIC_CIPHER_TRANSFORMATION = "AES";
+	private static final String SYMMETRIC_CIPHER_TRANSFORMATION = "AES/ECB/PKCS5Padding";
 	private static final String CERTIFICATE_TYPE = "X.509";
 	private static final String KEYSTORE_TYPE = "JKS";
 	private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
