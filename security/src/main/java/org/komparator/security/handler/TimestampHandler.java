@@ -1,6 +1,6 @@
 package org.komparator.security.handler;
 
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.*;
@@ -60,25 +60,27 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 
 				// Validate timestamp
-				NodeList timestampNodeList = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_TIMESTAMP);
-				if (timestampNodeList.getLength() == 0) {
-					generateSOAPErrorMessage(message, "No timestamp element found in SOAP header.");
+				Node timestampNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_TIMESTAMP).item(0);
+				if (timestampNode == null || timestampNode.getFirstChild() == null ) {
+					generateSOAPErrorMessage(message, "No properly formatted timestamp element found in SOAP header.");
 				}
-				String timestampString = timestampNodeList.item(0).getChildNodes().item(0).getNodeValue();
-				long timestamp = Long.parseLong(timestampString);
+				long timestamp = Long.parseLong(timestampNode.getFirstChild().getNodeValue());
 				if (Math.abs(System.currentTimeMillis() - timestamp) >= TIMESTAMP_TIMEOUT) {
 					generateSOAPErrorMessage(message, "Timestamp discrepancy larger than 3 seconds.");
 				}
+
+				// Remove timestamp header
+				header.removeChild(timestampNode);
 
 				// Prune old nonces
 				recent_nonces = recent_nonces.tailMap(System.currentTimeMillis() - TIMESTAMP_TIMEOUT);
 
 				// Validate nonce
-				NodeList nonceNodeList = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_NONCE);
-				if (nonceNodeList.getLength() == 0) {
-					generateSOAPErrorMessage(message, "No nonce element found in SOAP header.");
+				Node nonceNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_NONCE).item(0);
+				if (nonceNode == null || nonceNode.getFirstChild() == null ) {
+					generateSOAPErrorMessage(message, "No properly formatted nonce element found in SOAP header.");
 				}
-				String nonce = nonceNodeList.item(0).getChildNodes().item(0).getNodeValue();
+				String nonce = nonceNode.getFirstChild().getNodeValue();
 				if (recent_nonces.containsKey(timestamp)) {
 					if (!recent_nonces.get(timestamp).add(nonce)) {
 						generateSOAPErrorMessage(message, "Repeated nonce was received.");
@@ -88,6 +90,9 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 					timestamped_nonces.add(nonce);
 					recent_nonces.put(timestamp, timestamped_nonces);
 				}
+
+				// Remove nonce header
+				header.removeChild(nonceNode);
 			}
 		} catch (SOAPException e) {
 			e.printStackTrace();
