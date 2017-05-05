@@ -137,7 +137,9 @@ public class CryptoUtil {
 
 	private static void closeInputStream(InputStream stream) {
 		try {
-			stream.close();
+			if (stream != null) {
+				stream.close();
+			}
 		} catch (IOException ignored) {
 		}
 	}
