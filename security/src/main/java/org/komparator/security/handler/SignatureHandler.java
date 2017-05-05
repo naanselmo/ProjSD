@@ -22,9 +22,9 @@ import java.io.ByteArrayOutputStream;
 public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	private static final String NAME = "signature";
+	private static final String NAME_SENDER = "sender_id";
 	private static final String NAMESPACE = "hd1";
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.SignatureHandler";
-	private static final String SENDER_ID = "sender_id";
 
 	private final HandlerManager manager = HandlerManager.getInstance();
 
@@ -48,7 +48,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 
 				// Add sender ID
-				Name name = envelope.createName(NAME, NAMESPACE, NAMESPACE_URI);
+				Name name = envelope.createName(NAME_SENDER, NAMESPACE, NAMESPACE_URI);
 				SOAPElement element = header.addChildElement(name);
 				element.addTextNode(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_ID));
 
@@ -106,7 +106,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 
 				// Get sender's name
-				Node nodeSender = header.getElementsByTagNameNS(NAMESPACE_URI, SENDER_ID).item(0);
+				Node nodeSender = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_SENDER).item(0);
 				if (nodeSender == null || nodeSender.getFirstChild() == null ) {
 					generateSOAPErrorMessage(message, "No properly formatted signature element found in SOAP header.");
 				}
@@ -118,7 +118,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					certificate = manager.localCertificates.get(sender);
 				} else {
 					try {
-						certificate = CryptoUtil.getCertificateFromPEMString(manager.certificateAuthority.getCertificate(SENDER_ID));
+						certificate = CryptoUtil.getCertificateFromPEMString(manager.certificateAuthority.getCertificate(sender));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
 							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
 						}
@@ -138,6 +138,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				if (!CryptoUtil.verifyDigitalSignature(certificate, byteContent, byteSignature)) {
 					generateSOAPErrorMessage(message, "Signature mismatch!");
 				}
+
+				// Remove sender's name header
+				header.removeChild(nodeSender);
 			}
 		} catch (SOAPException e) {
 			e.printStackTrace();
