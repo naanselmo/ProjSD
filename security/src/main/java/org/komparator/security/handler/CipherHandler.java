@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.SecretKey;
 import java.security.spec.InvalidKeySpecException;
 
-public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> {
+public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 
 	private static final String NAME = "cipher";
 	private static final String NAME_SECRET_KEY = "secret_key";

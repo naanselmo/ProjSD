@@ -31,6 +31,9 @@
         <ws.port>808${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/supplier-ws/endpoint</ws.url>
         <ws.name>T04_Supplier${ws.i}</ws.name>
+
+        <!-- Security config -->
+        <ca.ws.url>http://sec.sd.rnl.tecnico.ulisboa.pt:8081/ca</ca.ws.url>
     </properties>
 
     <dependencies>

@@ -23,8 +23,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.TimestampHandler";
 	private static final int TIMESTAMP_TIMEOUT = 3000;
 
-	private SortedMap<Long, Set<String>> recent_nonces = new TreeMap<>();
-	private SecureRandom randomizer = new SecureRandom();
+	private final HandlerManager manager = HandlerManager.getInstance();
 
 	@Override
 	public Set<QName> getHeaders() {
@@ -52,7 +51,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 				name = envelope.createName(NAME_NONCE, NAMESPACE, NAMESPACE_URI);
 				element = header.addChildElement(name);
 				byte[] nonce = new byte[16];
-				randomizer.nextBytes(nonce);
+				manager.randomizer.nextBytes(nonce);
 				element.addTextNode(Base64.getEncoder().encodeToString(nonce));
 			} else {
 				if (header == null) {
@@ -73,7 +72,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 				header.removeChild(timestampNode);
 
 				// Prune old nonces
-				recent_nonces = recent_nonces.tailMap(System.currentTimeMillis() - TIMESTAMP_TIMEOUT);
+				manager.recent_nonces = manager.recent_nonces.tailMap(System.currentTimeMillis() - TIMESTAMP_TIMEOUT);
 
 				// Validate nonce
 				Node nonceNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_NONCE).item(0);
@@ -81,14 +80,14 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 					generateSOAPErrorMessage(message, "No properly formatted nonce element found in SOAP header.");
 				}
 				String nonce = nonceNode.getFirstChild().getNodeValue();
-				if (recent_nonces.containsKey(timestamp)) {
-					if (!recent_nonces.get(timestamp).add(nonce)) {
+				if (manager.recent_nonces.containsKey(timestamp)) {
+					if (!manager.recent_nonces.get(timestamp).add(nonce)) {
 						generateSOAPErrorMessage(message, "Repeated nonce was received.");
 					}
 				} else {
 					Set<String> timestamped_nonces = new HashSet<>();
 					timestamped_nonces.add(nonce);
-					recent_nonces.put(timestamp, timestamped_nonces);
+					manager.recent_nonces.put(timestamp, timestamped_nonces);
 				}
 
 				// Remove nonce header
