@@ -17,6 +17,7 @@ import java.security.*;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClientException;
 import java.security.cert.Certificate;
+import java.io.ByteArrayOutputStream;
 
 public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
@@ -67,8 +68,12 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					}
 				}
 
+				// Get all text
+				ByteArrayOutputStream messageStream = new ByteArrayOutputStream();
+				message.writeTo(messageStream);
+				byte[] byteContent = messageStream.toByteArray();
+
 				// Generate signature
-				byte[] byteContent = part.getTextContent().getBytes();
 				byte[] byteSignature = CryptoUtil.makeDigitalSignature(manager.privateKey, byteContent);
 				String stringSignature = Base64.getEncoder().encodeToString(byteSignature);
 
@@ -124,8 +129,12 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					manager.localCertificates.put(sender, certificate);
 				}
 
+				// Get all text
+				ByteArrayOutputStream messageStream = new ByteArrayOutputStream();
+				message.writeTo(messageStream);
+				byte[] byteContent = messageStream.toByteArray();
+
 				// Verify signature
-				byte[] byteContent = part.getTextContent().getBytes();
 				if (!CryptoUtil.verifyDigitalSignature(certificate, byteContent, byteSignature)) {
 					generateSOAPErrorMessage(message, "Signature mismatch!");
 				}
