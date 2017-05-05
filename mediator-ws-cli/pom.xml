@@ -35,6 +35,9 @@
 
         <suppliers.count>2</suppliers.count>
         <suppliers.name.prefix>T04_Supplier</suppliers.name.prefix>
+
+        <!-- Security config -->
+        <ca.ws.url>http://sec.sd.rnl.tecnico.ulisboa.pt:8081/ca</ca.ws.url>
     </properties>
 
     <dependencies>
