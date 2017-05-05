@@ -10,6 +10,8 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
 import java.util.Set;
 import java.util.Base64;
+import java.util.Map;
+import java.util.HashMap;
 import org.komparator.security.CryptoUtil;
 import org.komparator.security.CryptoException;
 import org.komparator.security.SecurityConfig;
@@ -28,6 +30,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
 	private CAClient certificateAuthority;
+	private Map<String, Certificate> localCertificates = new HashMap<>();
 
 	@Override
 	public Set<QName> getHeaders() {
@@ -102,14 +105,19 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				// Get sender's certificate
 				String sender = message.getProperty(SENDER_ID).toString();
 				Certificate certificate;
-				try {
-					certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(SENDER_ID));
-					if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
-						generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
+				if (localCertificates.containsKey(sender)) {
+					certificate = localCertificates.get(sender);
+				} else {
+					try {
+						certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(SENDER_ID));
+						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
+							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
+						}
+					} catch (CryptoException e)	{
+						e.printStackTrace();
+						return false;
 					}
-				} catch (CryptoException e)	{
-					e.printStackTrace();
-					return false;
+					localCertificates.put(sender, certificate);
 				}
 
 				// Verify signature
