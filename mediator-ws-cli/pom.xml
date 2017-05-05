@@ -89,9 +89,24 @@
             </resource>
         </resources>
         <testResources>
+            <!-- For testing only! Will emulate a mediator when talking to suppliers -->
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.jks</exclude>
+                    <exclude>**/*.xml</exclude>
+                    <exclude>**/*.cer</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.jks</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.cer</include>
+                </includes>
             </testResource>
         </testResources>
         <plugins>

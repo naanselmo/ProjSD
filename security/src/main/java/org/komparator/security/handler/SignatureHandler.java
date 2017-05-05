@@ -108,7 +108,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				// Get sender's name
 				Node nodeSender = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_SENDER).item(0);
 				if (nodeSender == null || nodeSender.getFirstChild() == null ) {
-					generateSOAPErrorMessage(message, "No properly formatted signature element found in SOAP header.");
+					generateSOAPErrorMessage(message, "No properly formatted sender name element found in SOAP header.");
 				}
 				String sender = nodeSender.getFirstChild().getNodeValue();
 

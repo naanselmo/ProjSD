@@ -18,6 +18,8 @@ public class HandlerManager {
 	SecureRandom randomizer = new SecureRandom();
 	PublicKey publicKey;
 	PrivateKey privateKey;
+	PublicKey cipherPublicKey;
+	PrivateKey cipherPrivateKey;
 	SecretKey secretKey;
 	CAClient certificateAuthority;
 
