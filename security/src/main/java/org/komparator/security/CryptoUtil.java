@@ -137,11 +137,7 @@ public class CryptoUtil {
 
 	/** Method used to access resource. */
 	private static InputStream getResourceAsStream(String resourcePath) {
-		// uses current thread's class loader to also work correctly inside
-		// application servers
-		// reference: http://stackoverflow.com/a/676273/129497
-		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
-		return is;
+		return CryptoUtil.class.getResourceAsStream(resourcePath);
 	}
 
 	private static void closeInputStream(InputStream stream) {
