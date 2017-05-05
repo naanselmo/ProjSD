@@ -10,8 +10,6 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
 import java.util.Set;
 import java.util.Base64;
-import java.util.Map;
-import java.util.HashMap;
 import org.komparator.security.CryptoUtil;
 import org.komparator.security.CryptoException;
 import org.komparator.security.SecurityConfig;
@@ -27,10 +25,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.SignatureHandler";
 	private static final String SENDER_ID = "sender_id";
 
-	private PublicKey publicKey;
-	private PrivateKey privateKey;
-	private CAClient certificateAuthority;
-	private Map<String, Certificate> localCertificates = new HashMap<>();
+	private final HandlerManager manager = HandlerManager.getInstance();
 
 	@Override
 	public Set<QName> getHeaders() {
@@ -56,9 +51,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				SOAPElement element = header.addChildElement(name);
 				element.addTextNode(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_ID));
 
-				if (privateKey == null) {
+				if (manager.privateKey == null) {
 					try {
-						privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
+						manager.privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
 							SecurityConfig.getProperty(
 								SecurityConfig.PROPERTY_KEYSTORE_PATH),
 								SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
@@ -74,7 +69,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 				// Generate signature
 				byte[] byteContent = part.getTextContent().getBytes();
-				byte[] byteSignature = CryptoUtil.makeDigitalSignature(privateKey, byteContent);
+				byte[] byteSignature = CryptoUtil.makeDigitalSignature(manager.privateKey, byteContent);
 				String stringSignature = Base64.getEncoder().encodeToString(byteSignature);
 
 				// Insert signature
@@ -96,9 +91,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				// Remove signature header
 				header.removeChild(nodeSignature);
 
-				if (certificateAuthority == null){
+				if (manager.certificateAuthority == null){
 					try {
-						certificateAuthority = new CAClient(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
+						manager.certificateAuthority = new CAClient(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
 					} catch (CAClientException e) {
 						e.printStackTrace();
 						return false;
@@ -114,11 +109,11 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 				// Get sender's certificate
 				Certificate certificate;
-				if (localCertificates.containsKey(sender)) {
-					certificate = localCertificates.get(sender);
+				if (manager.localCertificates.containsKey(sender)) {
+					certificate = manager.localCertificates.get(sender);
 				} else {
 					try {
-						certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(SENDER_ID));
+						certificate = CryptoUtil.getCertificateFromPEMString(manager.certificateAuthority.getCertificate(SENDER_ID));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
 							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
 						}
@@ -126,7 +121,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 						e.printStackTrace();
 						return false;
 					}
-					localCertificates.put(sender, certificate);
+					manager.localCertificates.put(sender, certificate);
 				}
 
 				// Verify signature

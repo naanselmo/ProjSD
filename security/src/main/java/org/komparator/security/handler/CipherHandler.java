@@ -22,7 +22,6 @@ import pt.ulisboa.tecnico.sdis.ws.cli.CAClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClientException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.SecretKey;
 import java.security.spec.InvalidKeySpecException;
 
 public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
@@ -35,10 +34,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String OPERATION_TARGET = "T04_Mediator";
 	private static final String KEY_ALGO = "AES";
 
-	private PublicKey publicKey;
-	private PrivateKey privateKey;
-	private SecretKey secretKey;
-	private CAClient certificateAuthority;
+	private final HandlerManager manager = HandlerManager.getInstance();
 
 	@Override
 	public Set<QName> getHeaders() {
@@ -56,35 +52,35 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 			boolean includeKey = false;
 
 			if (outbound) {
-				if (certificateAuthority == null){
+				if (manager.certificateAuthority == null){
 					try {
-						certificateAuthority = new CAClient(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
+						manager.certificateAuthority = new CAClient(SecurityConfig.getProperty(SecurityConfig.PROPERTY_CA_WS_URL));
 					} catch (CAClientException e) {
 						e.printStackTrace();
 						return false;
 					}
 				}
 
-				if (publicKey == null && privateKey == null) {
+				if (manager.publicKey == null && manager.privateKey == null) {
 					try {
-						Certificate certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(OPERATION_TARGET));
+						Certificate certificate = CryptoUtil.getCertificateFromPEMString(manager.certificateAuthority.getCertificate(OPERATION_TARGET));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
 							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
 						}
-						publicKey = CryptoUtil.getKeyFromCertificate(certificate);
+						manager.publicKey = CryptoUtil.getKeyFromCertificate(certificate);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
 					}
 				}
 
-				if (secretKey == null) {
+				if (manager.secretKey == null) {
 					includeKey = true;
 					try {
 						SecureRandom randomizer = new SecureRandom();
 						KeyGenerator keyGen = KeyGenerator.getInstance(KEY_ALGO);
 						keyGen.init(128, randomizer);
-						secretKey = keyGen.generateKey();
+						manager.secretKey = keyGen.generateKey();
 					} catch (NoSuchAlgorithmException e) {
 						e.printStackTrace();
 						return false;
@@ -104,7 +100,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 						byte[] nodeContent = node.getNodeValue().getBytes();
 						byte[] cipheredNodeContent;
 						try {
-							cipheredNodeContent = CryptoUtil.symCipher(nodeContent, secretKey);
+							cipheredNodeContent = CryptoUtil.symCipher(nodeContent, manager.secretKey);
 						} catch (CryptoException e) {
 							e.printStackTrace();
 							return false;
@@ -121,11 +117,11 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 
 					Name name = envelope.createName(NAME_SECRET_KEY, NAMESPACE, NAMESPACE_URI);
 					SOAPElement element = header.addChildElement(name);
-					byte[] secretKeyBytes = secretKey.getEncoded();
+					byte[] secretKeyBytes = manager.secretKey.getEncoded();
 					byte[] cipheredSecretKey;
 
 					try {
-						cipheredSecretKey = CryptoUtil.asymCipher(secretKeyBytes, publicKey);
+						cipheredSecretKey = CryptoUtil.asymCipher(secretKeyBytes, manager.publicKey);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
@@ -134,9 +130,9 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					element.addTextNode(Base64.getEncoder().encodeToString(cipheredSecretKey));
 				}
 			} else {
-				if (publicKey == null && privateKey == null) {
+				if (manager.publicKey == null && manager.privateKey == null) {
 					try {
-						privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
+						manager.privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
 							SecurityConfig.getProperty(
 								SecurityConfig.PROPERTY_KEYSTORE_PATH),
 								SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
@@ -150,7 +146,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					}
 				}
 
-				if (secretKey == null) {
+				if (manager.secretKey == null) {
 					// Fetch secret key
 					Node secretKeyNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_SECRET_KEY).item(0);
 					if (secretKeyNode == null || secretKeyNode.getFirstChild() == null ) {
@@ -160,12 +156,12 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					byte[] secretKeyCiphered = Base64.getDecoder().decode(secretKeyNode.getFirstChild().getNodeValue());
 					byte[] secretKeyUnciphered;
 					try {
-						secretKeyUnciphered = CryptoUtil.asymDecipher(secretKeyCiphered, privateKey);
+						secretKeyUnciphered = CryptoUtil.asymDecipher(secretKeyCiphered, manager.privateKey);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
 					}
-					secretKey = new SecretKeySpec(secretKeyUnciphered, 0, secretKeyUnciphered.length, KEY_ALGO);
+					manager.secretKey = new SecretKeySpec(secretKeyUnciphered, 0, secretKeyUnciphered.length, KEY_ALGO);
 
 					// Remove secret key header
 					header.removeChild(secretKeyNode);
@@ -184,7 +180,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 						byte[] cipheredNodeContent = Base64.getDecoder().decode(node.getNodeValue());
 						byte[] nodeContent;
 						try {
-							nodeContent = CryptoUtil.symDecipher(cipheredNodeContent, secretKey);
+							nodeContent = CryptoUtil.symDecipher(cipheredNodeContent, manager.secretKey);
 						} catch (CryptoException e) {
 							e.printStackTrace();
 							return false;
