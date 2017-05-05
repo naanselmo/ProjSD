@@ -31,7 +31,7 @@ public class CryptoUtil {
 	}
 
 	public static KeyStore getKeyStoreFromResource(String path, String storePassword) throws CryptoException {
-		InputStream stream = CryptoUtil.class.getResourceAsStream(path);
+		InputStream stream = getResourceAsStream(path);
 		KeyStore keyStore = getKeyStore(stream, storePassword);
 		closeInputStream(stream);
 		return keyStore;
@@ -55,7 +55,7 @@ public class CryptoUtil {
 	}
 
 	public static Certificate getCertificateFromResource(String path) throws CryptoException {
-		return getCertificate(CryptoUtil.class.getResourceAsStream(path));
+		return getCertificate(getResourceAsStream(path));
 	}
 
 	public static Certificate getCertificateFromPEMString(String certificateString) throws CryptoException {
@@ -133,6 +133,15 @@ public class CryptoUtil {
 
 	private static InputStream getInputStreamFromString(String string) {
 		return new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/** Method used to access resource. */
+	private static InputStream getResourceAsStream(String resourcePath) {
+		// uses current thread's class loader to also work correctly inside
+		// application servers
+		// reference: http://stackoverflow.com/a/676273/129497
+		InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
+		return is;
 	}
 
 	private static void closeInputStream(InputStream stream) {
