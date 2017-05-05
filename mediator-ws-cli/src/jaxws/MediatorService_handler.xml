@@ -10,7 +10,7 @@
             <handler-class>org.komparator.security.handler.LoggingHandler</handler-class>
         </handler>
         <handler>
-            <handler-class>org.komparator.security.handler.CreditCardCipherHandler</handler-class>
+            <handler-class>org.komparator.security.handler.CipherHandler</handler-class>
         </handler>
         <handler>
             <handler-class>org.komparator.security.handler.LoggingHandler</handler-class>

@@ -20,21 +20,24 @@ import java.security.*;
 import java.security.cert.Certificate;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClientException;
-import java.security.spec.X509EncodedKeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import java.security.spec.InvalidKeySpecException;
 
 public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> {
 
 	private static final String NAME = "cipher";
-	private static final String NAME_PKEY = "client_pkey";
+	private static final String NAME_SECRET_KEY = "secret_key";
 	private static final String NAMESPACE = "hd1";
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.CreditCardCipherHandler";
 	private static final String OPERATION_NAME = "buyCart";
 	private static final String OPERATION_TARGET = "T04_Mediator";
-	private static final String KEY_ALGO = "RSA";
+	private static final String KEY_ALGO = "AES";
 
 	private PublicKey publicKey;
 	private PrivateKey privateKey;
+	private SecretKey secretKey;
 	private CAClient certificateAuthority;
 
 	@Override
@@ -50,6 +53,7 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 			SOAPEnvelope envelope = part.getEnvelope();
 			SOAPHeader header = envelope.getHeader();
 			Boolean outbound = (Boolean) context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
+			boolean includeKey = false;
 
 			if (outbound) {
 				if (certificateAuthority == null){
@@ -61,7 +65,7 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 					}
 				}
 
-				if (publicKey == null) {
+				if (publicKey == null && privateKey == null) {
 					try {
 						Certificate certificate = CryptoUtil.getCertificateFromPEMString(certificateAuthority.getCertificate(OPERATION_TARGET));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
@@ -69,6 +73,19 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 						}
 						publicKey = CryptoUtil.getKeyFromCertificate(certificate);
 					} catch (CryptoException e) {
+						e.printStackTrace();
+						return false;
+					}
+				}
+
+				if (secretKey == null) {
+					includeKey = true;
+					try {
+						SecureRandom randomizer = new SecureRandom();
+						KeyGenerator keyGen = KeyGenerator.getInstance(KEY_ALGO);
+						keyGen.init(128, randomizer);
+						secretKey = keyGen.generateKey();
+					} catch (NoSuchAlgorithmException e) {
 						e.printStackTrace();
 						return false;
 					}
@@ -87,7 +104,7 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 						byte[] nodeContent = node.getNodeValue().getBytes();
 						byte[] cipheredNodeContent;
 						try {
-							cipheredNodeContent = CryptoUtil.asymCipher(nodeContent, publicKey);
+							cipheredNodeContent = CryptoUtil.symCipher(nodeContent, secretKey);
 						} catch (CryptoException e) {
 							e.printStackTrace();
 							return false;
@@ -96,29 +113,28 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 					}
 				}
 
-				if (privateKey == null) {
+				if (includeKey) {
+					// Insert symmetric key into header
+					if (header == null) {
+						header = envelope.addHeader();
+					}
+
+					Name name = envelope.createName(NAME_SECRET_KEY, NAMESPACE, NAMESPACE_URI);
+					SOAPElement element = header.addChildElement(name);
+					byte[] secretKeyBytes = secretKey.getEncoded();
+					byte[] cipheredSecretKey;
+
 					try {
-						SecureRandom randomizer = new SecureRandom();
-						KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGO);
-						keyGen.initialize(2048, randomizer);
-						KeyPair keyPair = keyGen.generateKeyPair();
-						privateKey = keyPair.getPrivate();
-
-						if (header == null) {
-							header = envelope.addHeader();
-						}
-
-						// Insert public key into header
-						Name name = envelope.createName(NAME_PKEY, NAMESPACE, NAMESPACE_URI);
-						SOAPElement element = header.addChildElement(name);
-						element.addTextNode(Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
-					} catch (NoSuchAlgorithmException e) {
+						cipheredSecretKey = CryptoUtil.asymCipher(secretKeyBytes, publicKey);
+					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
 					}
+
+					element.addTextNode(Base64.getEncoder().encodeToString(cipheredSecretKey));
 				}
 			} else {
-				if (privateKey == null) {
+				if (publicKey == null && privateKey == null) {
 					try {
 						privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
 							SecurityConfig.getProperty(
@@ -134,25 +150,25 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 					}
 				}
 
-				if (publicKey == null) {
-					// Fetch public key
-					Node publicKeyNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_PKEY).item(0);
-					if (publicKeyNode == null || publicKeyNode.getFirstChild() == null ) {
-						generateSOAPErrorMessage(message, "No properly formatted public key found in SOAP header.");
-					}
-					try {
-						byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyNode.getFirstChild().getNodeValue());
-						KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGO);
-						publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
-					} catch (NoSuchAlgorithmException e) {
-						e.printStackTrace();
-						return false;
-					} catch (InvalidKeySpecException e) {
-						generateSOAPErrorMessage(message, "No properly formatted public key found in SOAP header.");
+				if (secretKey == null) {
+					// Fetch secret key
+					Node secretKeyNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_SECRET_KEY).item(0);
+					if (secretKeyNode == null || secretKeyNode.getFirstChild() == null ) {
+						generateSOAPErrorMessage(message, "No properly formatted secret key found in SOAP header.");
 					}
 
-					// Remove public key header
-					header.removeChild(publicKeyNode);
+					byte[] secretKeyCiphered = Base64.getDecoder().decode(secretKeyNode.getFirstChild().getNodeValue());
+					byte[] secretKeyUnciphered;
+					try {
+						secretKeyUnciphered = CryptoUtil.asymDecipher(secretKeyCiphered, privateKey);
+					} catch (CryptoException e) {
+						e.printStackTrace();
+						return false;
+					}
+					secretKey = new SecretKeySpec(secretKeyUnciphered, 0, secretKeyUnciphered.length, KEY_ALGO);
+
+					// Remove secret key header
+					header.removeChild(secretKeyNode);
 				}
 
 				List<Node> nodeList = new LinkedList<>();
@@ -168,7 +184,7 @@ public class CreditCardCipherHandler implements SOAPHandler<SOAPMessageContext> 
 						byte[] cipheredNodeContent = Base64.getDecoder().decode(node.getNodeValue());
 						byte[] nodeContent;
 						try {
-							nodeContent = CryptoUtil.asymDecipher(cipheredNodeContent, privateKey);
+							nodeContent = CryptoUtil.symDecipher(cipheredNodeContent, secretKey);
 						} catch (CryptoException e) {
 							e.printStackTrace();
 							return false;

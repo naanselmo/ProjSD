@@ -12,10 +12,13 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 
 public class CryptoUtil {
 
 	private static final String CIPHER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
+	private static final String SYMMETRIC_CIPHER_TRANSFORMATION = "AES";
 	private static final String CERTIFICATE_TYPE = "X.509";
 	private static final String KEYSTORE_TYPE = "JKS";
 	private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
@@ -86,6 +89,30 @@ public class CryptoUtil {
 		if (key == null) throw new CryptoException("Key can't be null.");
 		try {
 			Cipher cipher = Cipher.getInstance(CIPHER_TRANSFORMATION);
+			cipher.init(Cipher.DECRYPT_MODE, key);
+			return cipher.doFinal(data);
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+			throw new CryptoException("Unable to decipher.", e);
+		}
+	}
+
+	public static byte[] symCipher(byte[] data, SecretKey key) throws CryptoException {
+		if (data == null) throw new CryptoException("Data can't be null.");
+		if (key == null) throw new CryptoException("Key can't be null.");
+		try {
+			Cipher cipher = Cipher.getInstance(SYMMETRIC_CIPHER_TRANSFORMATION);
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+			return cipher.doFinal(data);
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+			throw new CryptoException("Unable to cipher.", e);
+		}
+	}
+
+	public static byte[] symDecipher(byte[] data, SecretKey key) throws CryptoException {
+		if (data == null) throw new CryptoException("Data can't be null.");
+		if (key == null) throw new CryptoException("Key can't be null.");
+		try {
+			Cipher cipher = Cipher.getInstance(SYMMETRIC_CIPHER_TRANSFORMATION);
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			return cipher.doFinal(data);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
