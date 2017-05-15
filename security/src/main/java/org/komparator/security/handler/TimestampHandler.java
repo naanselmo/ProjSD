@@ -10,9 +10,6 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.security.SecureRandom;
 import java.util.Base64;
 
 public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
@@ -72,7 +69,7 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 				header.removeChild(timestampNode);
 
 				// Prune old nonces
-				manager.recent_nonces = manager.recent_nonces.tailMap(System.currentTimeMillis() - TIMESTAMP_TIMEOUT);
+				manager.recentNonces = manager.recentNonces.tailMap(System.currentTimeMillis() - TIMESTAMP_TIMEOUT);
 
 				// Validate nonce
 				Node nonceNode = header.getElementsByTagNameNS(NAMESPACE_URI, NAME_NONCE).item(0);
@@ -80,22 +77,21 @@ public class TimestampHandler implements SOAPHandler<SOAPMessageContext> {
 					generateSOAPErrorMessage(message, "No properly formatted nonce element found in SOAP header.");
 				}
 				String nonce = nonceNode.getFirstChild().getNodeValue();
-				if (manager.recent_nonces.containsKey(timestamp)) {
-					if (!manager.recent_nonces.get(timestamp).add(nonce)) {
+				if (manager.recentNonces.containsKey(timestamp)) {
+					if (!manager.recentNonces.get(timestamp).add(nonce)) {
 						generateSOAPErrorMessage(message, "Repeated nonce was received.");
 					}
 				} else {
-					Set<String> timestamped_nonces = new HashSet<>();
-					timestamped_nonces.add(nonce);
-					manager.recent_nonces.put(timestamp, timestamped_nonces);
+					Set<String> timestampedNonces = new HashSet<>();
+					timestampedNonces.add(nonce);
+					manager.recentNonces.put(timestamp, timestampedNonces);
 				}
 
 				// Remove nonce header
 				header.removeChild(nonceNode);
 			}
 		} catch (SOAPException e) {
-			e.printStackTrace();
-			return false;
+			throw new RuntimeException(e);
 		}
 		return true;
 	}

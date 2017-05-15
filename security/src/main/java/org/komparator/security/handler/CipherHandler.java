@@ -22,7 +22,6 @@ import pt.ulisboa.tecnico.sdis.ws.cli.CAClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClientException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.spec.InvalidKeySpecException;
 
 public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 
@@ -188,11 +187,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 			}
 		} catch (SOAPException e) {
-			e.printStackTrace();
-			return false;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
+			throw new RuntimeException(e);
 		}
 		return true;
 	}

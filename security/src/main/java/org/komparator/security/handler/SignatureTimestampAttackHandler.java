@@ -7,9 +7,7 @@ import javax.xml.soap.*;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
-import javax.xml.ws.soap.SOAPFaultException;
 import java.util.Set;
-import java.util.Base64;
 
 public class SignatureTimestampAttackHandler implements SOAPHandler<SOAPMessageContext> {
 
@@ -43,8 +41,7 @@ public class SignatureTimestampAttackHandler implements SOAPHandler<SOAPMessageC
 			} else {
 			}
 		} catch (SOAPException e) {
-			e.printStackTrace();
-			return false;
+			throw new RuntimeException(e);
 		}
 		return true;
 	}
@@ -56,17 +53,6 @@ public class SignatureTimestampAttackHandler implements SOAPHandler<SOAPMessageC
 
 	@Override
 	public void close(MessageContext messageContext) {
-	}
-
-	private void generateSOAPErrorMessage(SOAPMessage msg, String reason) {
-		try {
-			SOAPBody soapBody = msg.getSOAPPart().getEnvelope().getBody();
-			SOAPFault soapFault = soapBody.addFault();
-			soapFault.setFaultString(reason);
-			throw new SOAPFaultException(soapFault);
-		} catch (SOAPException e) {
-			System.err.println("Unable to generate a SOAP error message.");
-		}
 	}
 
 }

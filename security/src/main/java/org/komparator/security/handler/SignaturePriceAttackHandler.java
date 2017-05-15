@@ -7,9 +7,7 @@ import javax.xml.soap.*;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
-import javax.xml.ws.soap.SOAPFaultException;
 import java.util.Set;
-import java.util.Base64;
 
 public class SignaturePriceAttackHandler implements SOAPHandler<SOAPMessageContext> {
 
@@ -49,11 +47,9 @@ public class SignaturePriceAttackHandler implements SOAPHandler<SOAPMessageConte
 				if (searchResultsNode != null && searchResultsNode.getFirstChild() != null && searchResultsNode.getFirstChild().getLastChild() != null) {
 					searchResultsNode.getFirstChild().getLastChild().setNodeValue(Long.toString(999999));
 				}
-			} else {
 			}
 		} catch (SOAPException e) {
-			e.printStackTrace();
-			return false;
+			throw new RuntimeException(e);
 		}
 		return true;
 	}
@@ -65,17 +61,6 @@ public class SignaturePriceAttackHandler implements SOAPHandler<SOAPMessageConte
 
 	@Override
 	public void close(MessageContext messageContext) {
-	}
-
-	private void generateSOAPErrorMessage(SOAPMessage msg, String reason) {
-		try {
-			SOAPBody soapBody = msg.getSOAPPart().getEnvelope().getBody();
-			SOAPFault soapFault = soapBody.addFault();
-			soapFault.setFaultString(reason);
-			throw new SOAPFaultException(soapFault);
-		} catch (SOAPException e) {
-			System.err.println("Unable to generate a SOAP error message.");
-		}
 	}
 
 }

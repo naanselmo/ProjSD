@@ -8,12 +8,12 @@ import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.soap.SOAPFaultException;
+import java.io.IOException;
 import java.util.Set;
 import java.util.Base64;
 import org.komparator.security.CryptoUtil;
 import org.komparator.security.CryptoException;
 import org.komparator.security.SecurityConfig;
-import java.security.*;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CAClientException;
 import java.security.cert.Certificate;
@@ -143,11 +143,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				header.removeChild(nodeSender);
 			}
 		} catch (SOAPException e) {
-			e.printStackTrace();
-			return false;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException("Unable to write data to the byte array output stream.", e);
 		}
 		return true;
 	}
