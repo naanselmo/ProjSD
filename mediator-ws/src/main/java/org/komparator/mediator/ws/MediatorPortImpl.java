@@ -303,6 +303,17 @@ public class MediatorPortImpl implements MediatorPortType {
 		}
 	}
 
+	@Override
+	public void updateCart(String cartId, ItemIdView itemId, int itemQty) {
+		// TODO: Liliana dar update aos carts
+	}
+
+	@Override
+	public void updateShopHistory(ShoppingResultView shopResult) {
+		// TODO: Liliana dar update à historia. Possivelmente teras o singleton de modo a que sincronize o contador
+		// e que consigas adicionar ShoppingResults (não ShoppingResultViews) ao mapa.
+	}
+
 	// Helpers ---------------------------------------------------------
 
 	private UDDIRecord lookupSupplierRecord(String supplierName) {

@@ -69,6 +69,10 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             
             <xs:element name="imAlive" type="tns:imAlive"/>
 
+            <xs:element name="updateCart" type="tns:addToCart"/>
+
+            <xs:element name="updateShopHistory" type="tns:updateShopHistory"/>
+
             <xs:complexType name="listCarts">
                 <xs:sequence/>
             </xs:complexType>
@@ -248,7 +252,13 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             </xs:simpleType>
 
             <xs:complexType name="imAlive">
-                <xs:sequence />
+                <xs:sequence/>
+            </xs:complexType>
+
+            <xs:complexType name="updateShopHistory">
+                <xs:sequence>
+                    <xs:element name="shopResult" type="tns:shoppingResultView" minOccurs="0"/>
+                </xs:sequence>
             </xs:complexType>
         </xs:schema>
     </types>
@@ -326,6 +336,12 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
     <message name="imAlive">
         <part name="parameters" element="tns:imAlive"/>
     </message>
+    <message name="updateCart">
+        <part name="parameters" element="tns:updateCart"/>
+    </message>
+    <message name="updateShopHistory">
+        <part name="parameters" element="tns:updateShopHistory"/>
+    </message>
 
     <!-- Port Type (Interface) -->
     <portType name="MediatorPortType">
@@ -372,6 +388,12 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
         </operation>
         <operation name="imAlive">
             <input wsam:Action="http://ws.mediator.komparator.org/Mediator/imAliveRequest" message="tns:imAlive"/>
+        </operation>
+        <operation name="updateCart">
+            <input wsam:Action="http://ws.mediator.komparator.org/Mediator/updateCartRequest" message="tns:updateCart"/>
+        </operation>
+        <operation name="updateShopHistory">
+            <input wsam:Action="http://ws.mediator.komparator.org/Mediator/updateShopHistoryRequest" message="tns:updateShopHistory"/>
         </operation>
     </portType>
 
@@ -478,7 +500,19 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             </output>
         </operation>
         <operation name="imAlive">
-            <soap:operation soapAction="" />
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+        </operation>
+        <operation name="updateCart">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+        </operation>
+        <operation name="updateShopHistory">
+            <soap:operation soapAction=""/>
             <input>
                 <soap:body use="literal"/>
             </input>
