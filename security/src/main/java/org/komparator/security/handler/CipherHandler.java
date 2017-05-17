@@ -29,7 +29,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 	private static final String NAME_SECRET_KEY = "secret_key";
 	private static final String NAMESPACE = "hd1";
 	private static final String NAMESPACE_URI = "org.komparator.security.ws.handler.CreditCardCipherHandler";
-	private static final String OPERATION_NAME = "buyCart";
+	private static final String[] MESSAGES_SKIP = new String[] {"imAlive", "updateShopHistory", "updateCart"};
 	private static final String OPERATION_TARGET = "T04_Mediator";
 	private static final String KEY_ALGO = "AES";
 
@@ -50,6 +50,14 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 			Boolean outbound = (Boolean) context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 			boolean includeKey = false;
 
+			// Minor hack: disable/skip cipher if, and only if, the message type specifically disables it
+			QName operation = (QName) context.get(MessageContext.WSDL_OPERATION);
+			for (String skipName : MESSAGES_SKIP) {
+				if (operation.getLocalPart().equals(skipName)) {
+					return true;
+				}
+			}
+
 			if (outbound) {
 				if (manager.certificateAuthority == null){
 					try {
@@ -60,13 +68,13 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					}
 				}
 
-				if (manager.cipherPublicKey == null && manager.cipherPrivateKey == null) {
+				if (manager.publicKey == null && manager.privateKey == null) {
 					try {
 						Certificate certificate = CryptoUtil.getCertificateFromPEMString(manager.certificateAuthority.getCertificate(OPERATION_TARGET));
 						if (!CryptoUtil.verifyIssuer(certificate, CryptoUtil.getCertificateFromResource(SecurityConfig.CA_CERTIFICATE_PATH))) {
 							generateSOAPErrorMessage(message, "Unsigned certificate received, rejecting!");
 						}
-						manager.cipherPublicKey = CryptoUtil.getKeyFromCertificate(certificate);
+						manager.publicKey = CryptoUtil.getKeyFromCertificate(certificate);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
@@ -120,7 +128,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					byte[] cipheredSecretKey;
 
 					try {
-						cipheredSecretKey = CryptoUtil.asymCipher(secretKeyBytes, manager.cipherPublicKey);
+						cipheredSecretKey = CryptoUtil.asymCipher(secretKeyBytes, manager.publicKey);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;
@@ -129,9 +137,9 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					element.addTextNode(Base64.getEncoder().encodeToString(cipheredSecretKey));
 				}
 			} else {
-				if (manager.cipherPublicKey == null && manager.cipherPrivateKey == null) {
+				if (manager.publicKey == null && manager.privateKey == null) {
 					try {
-						manager.cipherPrivateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
+						manager.privateKey = CryptoUtil.getKeyFromKeyStore(CryptoUtil.getKeyStoreFromResource(
 							SecurityConfig.getProperty(
 								SecurityConfig.PROPERTY_KEYSTORE_PATH),
 								SecurityConfig.getProperty(SecurityConfig.PROPERTY_KEYSTORE_PASSWORD)
@@ -151,7 +159,7 @@ public class CipherHandler implements SOAPHandler<SOAPMessageContext> {
 					byte[] secretKeyCiphered = Base64.getDecoder().decode(secretKeyNode.getFirstChild().getNodeValue());
 					byte[] secretKeyUnciphered;
 					try {
-						secretKeyUnciphered = CryptoUtil.asymDecipher(secretKeyCiphered, manager.cipherPrivateKey);
+						secretKeyUnciphered = CryptoUtil.asymDecipher(secretKeyCiphered, manager.privateKey);
 					} catch (CryptoException e) {
 						e.printStackTrace();
 						return false;

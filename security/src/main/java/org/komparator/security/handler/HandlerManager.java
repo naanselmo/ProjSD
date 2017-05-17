@@ -17,8 +17,7 @@ public class HandlerManager {
 	Map<String, Certificate> localCertificates = new ConcurrentHashMap<>();
 	SecureRandom randomizer = new SecureRandom();
 	PrivateKey privateKey;
-	PublicKey cipherPublicKey;
-	PrivateKey cipherPrivateKey;
+	PublicKey publicKey;
 	SecretKey secretKey;
 	CAClient certificateAuthority;
 
