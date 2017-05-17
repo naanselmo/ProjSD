@@ -295,6 +295,14 @@ public class MediatorPortImpl implements MediatorPortType {
 				.map(this::newShoppingResultView).collect(Collectors.toList());
 	}
 
+	@Override
+	public void imAlive() {
+		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) {
+			// Reset the substitution timer
+			System.out.println("Received a heartbeat. Updating last heartbeat to " + System.currentTimeMillis());
+		}
+	}
+
 	// Helpers ---------------------------------------------------------
 
 	private UDDIRecord lookupSupplierRecord(String supplierName) {

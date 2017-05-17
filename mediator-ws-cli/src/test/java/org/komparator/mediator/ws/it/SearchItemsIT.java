@@ -1,17 +1,18 @@
 package org.komparator.mediator.ws.it;
 
-import java.util.List;
-
-import org.komparator.mediator.ws.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.komparator.mediator.client.ws.InvalidItemId_Exception;
+import org.komparator.mediator.client.ws.InvalidText_Exception;
+import org.komparator.mediator.client.ws.ItemView;
 import org.komparator.supplier.ws.*;
 import org.komparator.supplier.ws.cli.SupplierClient;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.After;
 
 /**
  * Test suite

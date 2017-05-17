@@ -85,7 +85,8 @@ public class MediatorEndpointManager {
 			}
 			throw e;
 		}
-		publishToUDDI();
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY))
+			publishToUDDI();
 	}
 
 	public void awaitConnections() {

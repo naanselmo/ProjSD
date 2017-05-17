@@ -1,6 +1,6 @@
 package org.komparator.mediator.ws.cli;
 
-import org.komparator.mediator.ws.*;
+import org.komparator.mediator.client.ws.*;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import javax.xml.ws.BindingProvider;
@@ -165,6 +165,11 @@ public class MediatorClient implements MediatorPortType {
 	@Override
 	public List<ShoppingResultView> shopHistory() {
 		return port.shopHistory();
+	}
+
+	@Override
+	public void imAlive() {
+		port.imAlive();
 	}
 
 }

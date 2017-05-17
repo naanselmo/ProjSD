@@ -1,5 +1,7 @@
 package org.komparator.mediator.ws;
 
+import java.util.Timer;
+
 public class MediatorApp {
 
 	public static void main(String[] args) throws Exception {
@@ -23,6 +25,15 @@ public class MediatorApp {
 			wsName = args[1];
 			wsURL = args[2];
 			endpoint = new MediatorEndpointManager(uddiURL, wsName, wsURL);
+		}
+
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDACY_ENABLED)) {
+			boolean primary = MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY);
+			System.out.println("This mediator server is a " + (primary ? "primary" : "secondary") + " server.");
+			if (primary) {
+				Timer timer = new Timer(true);
+				timer.scheduleAtFixedRate(new LifeProof(), 0, MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDACY_HEARTBEAT_PERIOD));
+			}
 		}
 
 		endpoint.setVerbose(true);

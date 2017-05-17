@@ -21,6 +21,11 @@ public class MediatorConfig {
 	public static final String PROPERTY_CC_WS_URL = "cc.ws.url";
 	private static final String DEFAULT_CC_WS_URL = "http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc";
 
+	public static final String PROPERTY_REDUNDANCY_PRIMARY = "redundancy.primary";
+	public static final String PROPERTY_REDUNDACY_SECONDARY_WS_URL = "redundancy.secondary.ws.url";
+	public static final String PROPERTY_REDUNDACY_ENABLED = "redundancy.enabled";
+	public static final String PROPERTY_REDUNDACY_HEARTBEAT_PERIOD = "redundancy.heartbeat.period";
+
 	private static Properties loadConfigProperties() {
 		Properties properties = new Properties();
 		try {
@@ -40,5 +45,9 @@ public class MediatorConfig {
 	public static String getProperty(String property) {
 		return CONFIG_PROPERTIES.getProperty(property);
 	}
+
+	public static boolean getBooleanProperty(String property) { return Boolean.valueOf(CONFIG_PROPERTIES.getProperty(property)); }
+
+	public static long getLongProperty(String property) { return Long.parseLong(CONFIG_PROPERTIES.getProperty(property)); }
 
 }

@@ -127,6 +127,7 @@
                     <wsdlFiles>
                         <wsdlFile>${wsdl.filename}</wsdlFile>
                     </wsdlFiles>
+                    <packageName>org.komparator.mediator.client.ws</packageName>
                 </configuration>
                 <dependencies>
                     <dependency>
