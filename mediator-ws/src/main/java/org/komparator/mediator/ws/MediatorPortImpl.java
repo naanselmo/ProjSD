@@ -317,7 +317,7 @@ public class MediatorPortImpl implements MediatorPortType {
 			System.out.println("Received a heartbeat. Delaying transition into primary state.");
 			timer.cancel();
 			timer = new Timer(true);
-			timer.schedule(new LifeProof(), MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT));
+			timer.schedule(new LifeProof(endpointManager), MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT));
 		}
 	}
 
