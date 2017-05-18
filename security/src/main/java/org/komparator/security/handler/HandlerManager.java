@@ -29,4 +29,8 @@ public class HandlerManager {
 		return SingletonHolder.instance;
 	}
 
+	public void resetSecretKey() {
+		secretKey = null;
+	}
+
 }

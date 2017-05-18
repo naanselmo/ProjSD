@@ -2,8 +2,10 @@ package org.komparator.mediator.ws.cli;
 
 import org.komparator.mediator.client.ws.*;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
+import org.komparator.security.handler.HandlerManager;
 
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceException;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +43,11 @@ public class MediatorClient implements MediatorPortType {
 	 * WS endpoint address
 	 */
 	private String wsURL = null; // default value is defined inside WSDL
+
+	/**
+	 * Reconnect attempts
+	 */
+	private int reconnectAttempts = 0;
 
 	public String getWsURL() {
 		return wsURL;
@@ -105,6 +112,32 @@ public class MediatorClient implements MediatorPortType {
 	}
 
 	/**
+	 * Service reconnect
+	 */
+	private Boolean reconnect() {
+		try {
+			Thread.sleep(MediatorClientConfig.getLongProperty(MediatorClientConfig.PROPERTY_REDUNDANCY_RETRIES_WAIT));
+		} catch(InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+
+		System.out.println("Attempting to reconnect to mediator, for attempt number " + Long.toString(reconnectAttempts) + "/" + Long.toString(MediatorClientConfig.getLongProperty(MediatorClientConfig.PROPERTY_REDUNDANCY_RETRIES_MAX)));
+
+		if (reconnectAttempts++ >= MediatorClientConfig.getLongProperty(MediatorClientConfig.PROPERTY_REDUNDANCY_RETRIES_MAX)) {
+			return false;
+		}
+
+		try	{
+			HandlerManager.getInstance().resetSecretKey();
+			uddiLookup();
+			createStub();
+		} catch (Exception ignored) {
+		}
+
+		return true;
+	}
+
+	/**
 	 * Stub creation and configuration
 	 */
 	private void createStub() {
@@ -127,44 +160,132 @@ public class MediatorClient implements MediatorPortType {
 
 	@Override
 	public void clear() {
-		port.clear();
+		while (true) {
+			try {
+				port.clear();
+				reconnectAttempts = 0;
+				return;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public String ping(String arg0) {
-		return port.ping(arg0);
+		while (true) {
+			try {
+				String result = port.ping(arg0);
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public List<ItemView> searchItems(String descText) throws InvalidText_Exception {
-		return port.searchItems(descText);
+		while (true) {
+			try {
+				List<ItemView> result = port.searchItems(descText);
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public List<CartView> listCarts() {
-		return port.listCarts();
+		while (true) {
+			try {
+				List<CartView> result = port.listCarts();
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public List<ItemView> getItems(String productId) throws InvalidItemId_Exception {
-		return port.getItems(productId);
+		while (true) {
+			try {
+				List<ItemView> result = port.getItems(productId);
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public ShoppingResultView buyCart(String cartId, String creditCardNr)
 			throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
-		return port.buyCart(cartId, creditCardNr);
+		while (true) {
+			try {
+				ShoppingResultView result = port.buyCart(cartId, creditCardNr);
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public void addToCart(String cartId, ItemIdView itemId, int itemQty) throws InvalidCartId_Exception,
 			InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
-		port.addToCart(cartId, itemId, itemQty);
+		while (true) {
+			try {
+				port.addToCart(cartId, itemId, itemQty);
+				reconnectAttempts = 0;
+				return;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
 	public List<ShoppingResultView> shopHistory() {
-		return port.shopHistory();
+		while (true) {
+			try {
+				List<ShoppingResultView> result = port.shopHistory();
+				reconnectAttempts = 0;
+				return result;
+			} catch (WebServiceException e) {
+				e.printStackTrace();
+				if (!reconnect()) {
+					throw e;
+				}
+			}
+		}
 	}
 
 	@Override
