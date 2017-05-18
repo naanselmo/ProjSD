@@ -9,8 +9,11 @@ import java.util.TimerTask;
 public class LifeProof extends TimerTask {
 
 	private MediatorClient mediatorClient;
+	private MediatorEndpointManager mediatorEndpoint;
 
-	static public MediatorEndpointManager mediatorEndpoint;
+	public LifeProof(MediatorEndpointManager mediatorEndpoint) {
+		this.mediatorEndpoint = mediatorEndpoint;
+	}
 
 	@Override
 	public void run() {

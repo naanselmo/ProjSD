@@ -32,9 +32,7 @@ public class MediatorApp {
 			System.out.println("This mediator server is a " + (primary ? "primary" : "secondary") + " server.");
 			if (primary) {
 				Timer timer = new Timer(true);
-				timer.scheduleAtFixedRate(new LifeProof(), 0, MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_PERIOD));
-			} else {
-				LifeProof.mediatorEndpoint = endpoint;
+				timer.scheduleAtFixedRate(new LifeProof(endpoint), 0, MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_PERIOD));
 			}
 		}
 
