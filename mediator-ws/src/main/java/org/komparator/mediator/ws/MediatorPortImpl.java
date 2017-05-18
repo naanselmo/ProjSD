@@ -1,6 +1,8 @@
 package org.komparator.mediator.ws;
 
 import org.komparator.mediator.domain.*;
+import org.komparator.mediator.ws.cli.MediatorClient;
+import org.komparator.mediator.ws.cli.MediatorClientException;
 import org.komparator.supplier.ws.*;
 import org.komparator.supplier.ws.cli.SupplierClient;
 import org.komparator.supplier.ws.cli.SupplierClientException;
@@ -180,7 +182,10 @@ public class MediatorPortImpl implements MediatorPortType {
 				droppedItems.add(cartItem);
 			}
 		}
-		return newShoppingResultView(Mediator.getInstance().registerPurchase(cartId, purchasedItems, droppedItems));
+		ShoppingResult result = Mediator.getInstance().registerPurchase(cartId, purchasedItems, droppedItems);
+		// Update the secondary server
+		sendUpdateShopHistory(newClientShoppingResultView(result));
+		return newShoppingResultView(result);
 	}
 
 	@Override
@@ -227,6 +232,13 @@ public class MediatorPortImpl implements MediatorPortType {
 				if (productView == null) throwInvalidItemId("Supplier doesn't have that product!");
 				if (!Mediator.getInstance().testAndAddToCart(cartId, productId, supplierId, productView.getDesc(), productView.getPrice(), itemQty, productView.getQuantity())) {
 					throwNotEnoughItems("Supplier doesn't have enough quantity!");
+				} else {
+					// Update the secondary server
+					sendUpdateCart(
+							cartId,
+							newClientItemView(new Item(productId, supplierId, productView.getDesc(), productView.getPrice())),
+							itemQty
+					);
 				}
 			} catch (BadProductId_Exception e) {
 				throwInvalidItemId("Invalid product id!");
@@ -304,7 +316,7 @@ public class MediatorPortImpl implements MediatorPortType {
 	}
 
 	@Override
-	public void updateCart(String cartId, ItemIdView itemId, int itemQty) {
+	public void updateCart(String cartId, ItemView item, int itemQty) {
 		// TODO: Liliana dar update aos carts
 	}
 
@@ -348,7 +360,68 @@ public class MediatorPortImpl implements MediatorPortType {
 		return text.matches("[a-zA-Z0-9]+");
 	}
 
+	private void sendUpdateShopHistory(org.komparator.mediator.client.ws.ShoppingResultView resultView) {
+		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY))
+			return;
+		try {
+			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDACY_SECONDARY_WS_URL));
+			client.updateShopHistory(resultView);
+		} catch (WebServiceException | MediatorClientException e) {
+			System.out.println("Unable to connect to the backup server.");
+		}
+	}
+
+	private void sendUpdateCart(String cartId, org.komparator.mediator.client.ws.ItemView itemIdView, int itemQty) {
+		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY))
+			return;
+		try {
+			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDACY_SECONDARY_WS_URL));
+			client.updateCart(cartId, itemIdView, itemQty);
+		} catch (WebServiceException | MediatorClientException e) {
+			System.out.println("Unable to connect to the backup server.");
+		}
+	}
+
 	// View helpers -----------------------------------------------------
+
+	private org.komparator.mediator.client.ws.ShoppingResultView newClientShoppingResultView(ShoppingResult shoppingResult) {
+		org.komparator.mediator.client.ws.ShoppingResultView view = new org.komparator.mediator.client.ws.ShoppingResultView();
+		view.setId(shoppingResult.getId());
+		view.setResult(org.komparator.mediator.client.ws.Result.fromValue(shoppingResult.getResult().value()));
+		view.setTotalPrice(shoppingResult.getTotalPrice());
+		view.getPurchasedItems().addAll(shoppingResult.getPurchasedItems().stream().map(this::newClientCartItemView).collect(Collectors.toList()));
+		view.getDroppedItems().addAll(shoppingResult.getDroppedItems().stream().map(this::newClientCartItemView).collect(Collectors.toList()));
+		return view;
+	}
+
+	private org.komparator.mediator.client.ws.CartView newClientCartView(Cart cart) {
+		org.komparator.mediator.client.ws.CartView view = new org.komparator.mediator.client.ws.CartView();
+		view.setCartId(cart.getId());
+		view.getItems().addAll(cart.getItems().stream().map(this::newClientCartItemView).collect(Collectors.toList()));
+		return view;
+	}
+
+	private org.komparator.mediator.client.ws.CartItemView newClientCartItemView(CartItem item) {
+		org.komparator.mediator.client.ws.CartItemView view = new org.komparator.mediator.client.ws.CartItemView();
+		view.setItem(newClientItemView(item.getItem()));
+		view.setQuantity(item.getQuantity());
+		return view;
+	}
+
+	private org.komparator.mediator.client.ws.ItemView newClientItemView(Item item) {
+		org.komparator.mediator.client.ws.ItemView view = new org.komparator.mediator.client.ws.ItemView();
+		view.setDesc(item.getDesc());
+		view.setItemId(newClientItemIdView(item.getId()));
+		view.setPrice(item.getPrice());
+		return view;
+	}
+
+	private org.komparator.mediator.client.ws.ItemIdView newClientItemIdView(ItemId itemId) {
+		org.komparator.mediator.client.ws.ItemIdView view = new org.komparator.mediator.client.ws.ItemIdView();
+		view.setProductId(itemId.getProductId());
+		view.setSupplierId(itemId.getSupplierId());
+		return view;
+	}
 
 	private ShoppingResultView newShoppingResultView(ShoppingResult shoppingResult) {
 		ShoppingResultView view = new ShoppingResultView();
