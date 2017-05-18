@@ -49,6 +49,7 @@
         <redundancy.primary>true</redundancy.primary>
         <redundancy.secondary.ws.url>http://localhost:8087/mediator-ws/endpoint</redundancy.secondary.ws.url>
         <redundancy.heartbeat.period>5000</redundancy.heartbeat.period>
+        <redundancy.heartbeat.timeout>6000</redundancy.heartbeat.timeout>
     </properties>
 
     <dependencies>

@@ -27,12 +27,14 @@ public class MediatorApp {
 			endpoint = new MediatorEndpointManager(uddiURL, wsName, wsURL);
 		}
 
-		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDACY_ENABLED)) {
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_ENABLED)) {
 			boolean primary = MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY);
 			System.out.println("This mediator server is a " + (primary ? "primary" : "secondary") + " server.");
 			if (primary) {
 				Timer timer = new Timer(true);
-				timer.scheduleAtFixedRate(new LifeProof(), 0, MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDACY_HEARTBEAT_PERIOD));
+				timer.scheduleAtFixedRate(new LifeProof(), 0, MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_PERIOD));
+			} else {
+				LifeProof.mediatorEndpoint = endpoint;
 			}
 		}
 

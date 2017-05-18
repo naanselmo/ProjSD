@@ -17,6 +17,7 @@ import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Timer;
 
 @WebService(
 		endpointInterface = "org.komparator.mediator.ws.MediatorPortType",
@@ -40,6 +41,9 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	// Suppliers ws name format
 	private String suppliersWsNameFormat = MediatorConfig.getProperty(MediatorConfig.PROPERTY_WS_NAME_FORMAT);
+
+	// Redundancy timer
+	Timer timer = new Timer(true);
 
 	public MediatorPortImpl(MediatorEndpointManager endpointManager) {
 		this.endpointManager = endpointManager;
@@ -310,8 +314,10 @@ public class MediatorPortImpl implements MediatorPortType {
 	@Override
 	public void imAlive() {
 		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) {
-			// Reset the substitution timer
-			System.out.println("Received a heartbeat. Updating last heartbeat to " + System.currentTimeMillis());
+			System.out.println("Received a heartbeat. Delaying transition into primary state.");
+			timer.cancel();
+			timer = new Timer(true);
+			timer.schedule(new LifeProof(), MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT));
 		}
 	}
 
@@ -364,7 +370,7 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY))
 			return;
 		try {
-			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDACY_SECONDARY_WS_URL));
+			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDANCY_SECONDARY_WS_URL));
 			client.updateShopHistory(resultView);
 		} catch (WebServiceException | MediatorClientException e) {
 			System.out.println("Unable to connect to the backup server.");
@@ -375,7 +381,7 @@ public class MediatorPortImpl implements MediatorPortType {
 		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY))
 			return;
 		try {
-			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDACY_SECONDARY_WS_URL));
+			MediatorClient client = new MediatorClient(MediatorConfig.getProperty(MediatorConfig.PROPERTY_REDUNDANCY_SECONDARY_WS_URL));
 			client.updateCart(cartId, itemIdView, itemQty);
 		} catch (WebServiceException | MediatorClientException e) {
 			System.out.println("Unable to connect to the backup server.");

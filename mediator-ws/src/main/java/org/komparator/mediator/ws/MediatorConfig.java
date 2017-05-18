@@ -22,9 +22,10 @@ public class MediatorConfig {
 	private static final String DEFAULT_CC_WS_URL = "http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc";
 
 	public static final String PROPERTY_REDUNDANCY_PRIMARY = "redundancy.primary";
-	public static final String PROPERTY_REDUNDACY_SECONDARY_WS_URL = "redundancy.secondary.ws.url";
-	public static final String PROPERTY_REDUNDACY_ENABLED = "redundancy.enabled";
-	public static final String PROPERTY_REDUNDACY_HEARTBEAT_PERIOD = "redundancy.heartbeat.period";
+	public static final String PROPERTY_REDUNDANCY_SECONDARY_WS_URL = "redundancy.secondary.ws.url";
+	public static final String PROPERTY_REDUNDANCY_ENABLED = "redundancy.enabled";
+	public static final String PROPERTY_REDUNDANCY_HEARTBEAT_PERIOD = "redundancy.heartbeat.period";
+	public static final String PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT = "redundancy.heartbeat.timeout";
 
 	private static Properties loadConfigProperties() {
 		Properties properties = new Properties();
