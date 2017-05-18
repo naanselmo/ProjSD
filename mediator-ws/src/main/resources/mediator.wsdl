@@ -69,7 +69,7 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             
             <xs:element name="imAlive" type="tns:imAlive"/>
 
-            <xs:element name="updateCart" type="tns:addToCart"/>
+            <xs:element name="updateCart" type="tns:updateCart"/>
 
             <xs:element name="updateShopHistory" type="tns:updateShopHistory"/>
 
@@ -253,6 +253,14 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
 
             <xs:complexType name="imAlive">
                 <xs:sequence/>
+            </xs:complexType>
+
+            <xs:complexType name="updateCart">
+                <xs:sequence>
+                    <xs:element name="cartId" type="xs:string" minOccurs="0"/>
+                    <xs:element name="item" type="tns:itemView" minOccurs="0"/>
+                    <xs:element name="itemQty" type="xs:int"/>
+                </xs:sequence>
             </xs:complexType>
 
             <xs:complexType name="updateShopHistory">
