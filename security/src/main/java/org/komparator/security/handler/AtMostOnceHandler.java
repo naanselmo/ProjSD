@@ -131,6 +131,7 @@ public class AtMostOnceHandler implements SOAPHandler<SOAPMessageContext> {
 			SOAPBody soapBody = msg.getSOAPPart().getEnvelope().getBody();
 			SOAPFault soapFault = soapBody.addFault();
 			soapFault.setFaultString(reason);
+			soapFault.setFaultCode("RepeatedIdentifierFault");
 			throw new SOAPFaultException(soapFault);
 		} catch (SOAPException e) {
 			System.err.println("Unable to generate a SOAP error message.");

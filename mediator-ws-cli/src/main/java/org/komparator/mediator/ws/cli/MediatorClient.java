@@ -3,6 +3,7 @@ package org.komparator.mediator.ws.cli;
 import org.komparator.mediator.client.ws.*;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import org.komparator.security.handler.HandlerManager;
+import javax.xml.ws.soap.SOAPFaultException;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
@@ -246,6 +247,17 @@ public class MediatorClient implements MediatorPortType {
 				ShoppingResultView result = port.buyCart(cartId, creditCardNr);
 				reconnectAttempts = 0;
 				return result;
+			} catch (SOAPFaultException e) {
+				if (e.getFault().getFaultCode().equals("RepeatedIdentifierFault")) {
+					reconnectAttempts = 0;
+					// The server doesn't really keep track of what request is repeated, to resend it
+					// So, we'll actually figure out what the server SHOULD have sent, and "forge" it
+					// This is safe, since if the purchase was rejected, it was never updated on the secondary
+					// Therefore, it will never throw repeatedIdentifier unless the purchase was successful
+					return shopHistory().get(0);
+				} else {
+					throw e;
+				}
 			} catch (WebServiceException e) {
 				e.printStackTrace();
 				if (!reconnect()) {
@@ -263,6 +275,13 @@ public class MediatorClient implements MediatorPortType {
 				port.addToCart(cartId, itemId, itemQty);
 				reconnectAttempts = 0;
 				return;
+			} catch (SOAPFaultException e) {
+				if (e.getFault().getFaultCode().equals("RepeatedIdentifierFault")) {
+					reconnectAttempts = 0;
+					return;
+				} else {
+					throw e;
+				}
 			} catch (WebServiceException e) {
 				e.printStackTrace();
 				if (!reconnect()) {
