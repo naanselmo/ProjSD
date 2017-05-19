@@ -17,7 +17,6 @@ import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Timer;
 
 @WebService(
 		endpointInterface = "org.komparator.mediator.ws.MediatorPortType",
@@ -322,14 +321,20 @@ public class MediatorPortImpl implements MediatorPortType {
 	}
 
 	@Override
-	public void updateCart(String cartId, ItemView item, int itemQty) {
-		// TODO: Liliana dar update aos carts
+	public void updateCart(String cartId, ItemView itemView, int itemQty) {
+		Cart cart = Mediator.getInstance().getCart(cartId);
+		Item item = new Item(itemView.getItemId().getProductId(), itemView.getItemId().getSupplierId(), itemView.getDesc(), itemView.getPrice());
+		cart.add(item, itemQty);
 	}
 
 	@Override
-	public void updateShopHistory(ShoppingResultView shopResult) {
-		// TODO: Liliana dar update à historia. Possivelmente teras o singleton de modo a que sincronize o contador
-		// e que consigas adicionar ShoppingResults (não ShoppingResultViews) ao mapa.
+	public void updateShopHistory(ShoppingResultView shoppingResultView) {
+		List<CartItem> purchasedItems = convertCartItems(shoppingResultView, true);
+		List<CartItem> droppedItems = convertCartItems(shoppingResultView, false);
+
+		ShoppingResult.Result result = ShoppingResult.Result.valueOf(shoppingResultView.getResult().toString());
+		ShoppingResult shoppingResult = new ShoppingResult(shoppingResultView.getId(), result, purchasedItems, droppedItems, shoppingResultView.getTotalPrice());
+		Mediator.getInstance().putShoppingResult(shoppingResultView.getId(), shoppingResult);
 	}
 
 	// Helpers ---------------------------------------------------------
@@ -386,6 +391,26 @@ public class MediatorPortImpl implements MediatorPortType {
 		} catch (WebServiceException | MediatorClientException e) {
 			System.out.println("Unable to connect to the backup server.");
 		}
+	}
+
+	public List<CartItem> convertCartItems(ShoppingResultView shoppingResultView, boolean purchased) {
+		List<CartItemView> list;
+		if (purchased) {
+			list = shoppingResultView.getDroppedItems();
+		} else {
+			list = shoppingResultView.getPurchasedItems();
+		}
+		List<CartItem> cartList = new ArrayList<>();
+		for (CartItemView cartItemView : list) {
+			String supplierId = cartItemView.getItem().getItemId().getSupplierId();
+			String productId = cartItemView.getItem().getItemId().getProductId();
+			String desc = cartItemView.getItem().getDesc();
+			int price = cartItemView.getItem().getPrice();
+			Item item = new Item(supplierId, productId, desc, price);
+			CartItem cart = new CartItem(item, cartItemView.getQuantity());
+			cartList.add(cart);
+		}
+		return cartList;
 	}
 
 	// View helpers -----------------------------------------------------

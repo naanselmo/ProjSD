@@ -108,4 +108,8 @@ public class Mediator {
 		return shoppingResults.values();
 	}
 
+	public void putShoppingResult(String id , ShoppingResult shoppingResult){
+		shoppingResults.put(id, shoppingResult);
+		shoppingResultIdCounter.set(Integer.parseInt(id));
+	}
 }

@@ -14,7 +14,7 @@ public class Cart {
 		this.items = new HashMap<>();
 	}
 
-	void add(Item item, int quantity) {
+	public void add(Item item, int quantity) {
 		if (containsItem(item.getId())) {
 			CartItem cartItem = getItem(item.getId());
 			cartItem.updateQuantity(quantity);
