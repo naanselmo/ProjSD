@@ -48,7 +48,7 @@ public class RedundancyIT extends BaseWithSuppliersIT {
 		System.out.println("Buying cart1...");
 		ShoppingResultView primaryShoppingResultView = mediatorClient.buyCart("cart1", VALID_CC);
 
-		System.out.println("\n\nFinished adding items to cart1 sand cart2 and buying cart 1.\n\n");
+		System.out.println("\n\nPlease shutdown the primary mediator server. You have 10 seconds until the test resumes...\n\n");
 		Thread.sleep(10000);
 		System.out.println("Resuming tests...");
 
