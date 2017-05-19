@@ -111,6 +111,14 @@ public class AtMostOnceHandler implements SOAPHandler<SOAPMessageContext> {
 
 	@Override
 	public boolean handleFault(SOAPMessageContext soapMessageContext) {
+		Boolean outbound = (Boolean) soapMessageContext.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
+		if (!outbound) {
+			// Generate new identifier when a fault is received
+			// If we don't, then we'll use the same identifier next time, and will be rejected
+			byte[] identifier = new byte[16];
+			manager.randomizer.nextBytes(identifier);
+			manager.identifier = Base64.getEncoder().encodeToString(identifier);
+		}
 		return true;
 	}
 
