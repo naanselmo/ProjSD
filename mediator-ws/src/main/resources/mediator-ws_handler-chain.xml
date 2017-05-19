@@ -6,6 +6,12 @@
             <handler-class>org.komparator.security.handler.LoggingHandler</handler-class>
         </handler>
         <handler>
+            <handler-class>org.komparator.security.handler.AtMostOnceHandler</handler-class>
+        </handler>
+        <handler>
+            <handler-class>org.komparator.security.handler.LoggingHandler</handler-class>
+        </handler>
+        <handler>
             <handler-class>org.komparator.security.handler.TimestampHandler</handler-class>
         </handler>
         <handler>

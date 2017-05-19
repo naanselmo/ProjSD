@@ -20,6 +20,8 @@ public class HandlerManager {
 	PublicKey publicKey;
 	SecretKey secretKey;
 	CAClient certificateAuthority;
+	String identifier;
+	String lastIdentifier;
 
 	private static class SingletonHolder {
 		private static final HandlerManager instance = new HandlerManager();
