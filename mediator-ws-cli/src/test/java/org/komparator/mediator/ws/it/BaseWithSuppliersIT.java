@@ -23,7 +23,7 @@ public class BaseWithSuppliersIT extends BaseIT {
 		supplierClients = new SupplierClient[supCount];
 		supplierNames = new String[supCount];
 		for (int i = 1; i <= supCount; i++) {
-			supplierNames[i-1] = new String(supNamePrefix + Integer.toString(i));
+			supplierNames[i-1] = supNamePrefix + Integer.toString(i);
 			supplierClients[i-1] = new SupplierClient(supUDDIUrl, supplierNames[i-1]);
 		}
 

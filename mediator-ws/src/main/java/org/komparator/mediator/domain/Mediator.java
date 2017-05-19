@@ -58,16 +58,21 @@ public class Mediator {
 	public synchronized boolean testAndAddToCart(String cartId, String productId, String supplierId, String desc, int price, int itemQuantity, int supplierQuantity) {
 		ItemId itemId = new ItemId(productId, supplierId);
 		if (supplierQuantity >= getItemQuantity(cartId, itemId) + itemQuantity) {
-			Cart cart = carts.get(cartId);
-			if (cart == null) {
-				cart = new Cart(cartId);
-				carts.put(cart.getId(), cart);
-			}
+			Cart cart = getCartOrCreate(cartId);
 			Item item = new Item(itemId, desc, price);
 			cart.add(item, itemQuantity);
 			return true;
 		}
 		return false;
+	}
+
+	public Cart getCartOrCreate(String cartId) {
+		Cart cart = carts.get(cartId);
+		if (cart == null) {
+			cart = new Cart(cartId);
+			carts.put(cart.getId(), cart);
+		}
+		return cart;
 	}
 
 	public Cart getCart(String cartId) {

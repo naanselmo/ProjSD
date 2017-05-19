@@ -312,23 +312,24 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	@Override
 	public void imAlive() {
-		if (!MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) {
-			System.out.println("Received a heartbeat. Delaying transition into primary state.");
-			timer.cancel();
-			timer = new Timer(true);
-			timer.schedule(new LifeProof(endpointManager), MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT));
-		}
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) return;
+		System.out.println("Received a heartbeat. Delaying transition into primary state.");
+		timer.cancel();
+		timer = new Timer(true);
+		timer.schedule(new LifeProof(endpointManager), MediatorConfig.getLongProperty(MediatorConfig.PROPERTY_REDUNDANCY_HEARTBEAT_TIMEOUT));
 	}
 
 	@Override
 	public void updateCart(String cartId, ItemView itemView, int itemQty) {
-		Cart cart = Mediator.getInstance().getCart(cartId);
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) return;
+		Cart cart = Mediator.getInstance().getCartOrCreate(cartId);
 		Item item = new Item(itemView.getItemId().getProductId(), itemView.getItemId().getSupplierId(), itemView.getDesc(), itemView.getPrice());
 		cart.add(item, itemQty);
 	}
 
 	@Override
 	public void updateShopHistory(ShoppingResultView shoppingResultView) {
+		if (MediatorConfig.getBooleanProperty(MediatorConfig.PROPERTY_REDUNDANCY_PRIMARY)) return;
 		List<CartItem> purchasedItems = convertCartItems(shoppingResultView, true);
 		List<CartItem> droppedItems = convertCartItems(shoppingResultView, false);
 
@@ -396,9 +397,9 @@ public class MediatorPortImpl implements MediatorPortType {
 	public List<CartItem> convertCartItems(ShoppingResultView shoppingResultView, boolean purchased) {
 		List<CartItemView> list;
 		if (purchased) {
-			list = shoppingResultView.getDroppedItems();
-		} else {
 			list = shoppingResultView.getPurchasedItems();
+		} else {
+			list = shoppingResultView.getDroppedItems();
 		}
 		List<CartItem> cartList = new ArrayList<>();
 		for (CartItemView cartItemView : list) {
@@ -406,7 +407,7 @@ public class MediatorPortImpl implements MediatorPortType {
 			String productId = cartItemView.getItem().getItemId().getProductId();
 			String desc = cartItemView.getItem().getDesc();
 			int price = cartItemView.getItem().getPrice();
-			Item item = new Item(supplierId, productId, desc, price);
+			Item item = new Item(productId, supplierId, desc, price);
 			CartItem cart = new CartItem(item, cartItemView.getQuantity());
 			cartList.add(cart);
 		}
